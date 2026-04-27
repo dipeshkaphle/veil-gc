@@ -1,0 +1,16 @@
+name = "veil-gc"
+version = "0.1.0"
+defaultTargets = ["veil-gc"]
+
+[[lean_lib]]
+name = "VeilGc"
+
+[[lean_exe]]
+name = "veil-gc"
+root = "Main"
+
+
+[[require]]
+name = "veil"
+git = "https://github.com/verse-lab/veil-dev.git"
+rev = "veil-2.0-preview"
