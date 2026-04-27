@@ -14,15 +14,13 @@ This file intentionally captures the collector kernel first:
 The abstract graph-reachability specification from the paper is the next layer
 to add on top of this state machine. It is not encoded yet in this first pass.
 -/
-
-
 set_option veil.solver "grind"
+
 veil module VerifiedGc
 
 type Mutator
 
 type Collector
-
 
 type Ptr
 
@@ -82,8 +80,7 @@ So we have a starting addr , and the size of that thing..
 
 heap a <sz>
 
-We can then do an allocation of a certain size, which should split this heap ideally somehow.
-Not exactly split per se I guess..
+We can then do an allocation of a certain size, which should split this heap.
 
 heap a <sz> -> alloc a sz' -> heap (a + sz') <sz - sz'>, obj a sz'
 
@@ -104,26 +101,22 @@ x is the first field, so we say its at offset 0 and hence this is represented as
 
 relation field (parent: Ptr) (offset: Fin (Nat.succ HeapSize)) (child: Ptr) : Bool
 
+
 #gen_state
 
-ghost relation is_free (ptr : Ptr) := is_block ptr ∧ color ptr = blue
-ghost relation is_allocated (ptr : Ptr) := is_block ptr ∧ color ptr ≠ blue ∧ color ptr ≠ uncolored
+
+ghost relation is_free (ptr : Ptr) := 
+    is_block ptr ∧ color ptr = blue
+
+ghost relation is_allocated (ptr : Ptr) := 
+    is_block ptr ∧ color ptr ≠ blue ∧ color ptr ≠ uncolored
 
 -- TODO: is this problematic since I use existential?
-ghost relation field_of (parent: Ptr) (child: Ptr) := is_block parent ∧ is_block child ∧ (∃ offset, field parent offset child)
+ghost relation field_of (parent: Ptr) (child: Ptr) := 
+    is_block parent ∧ 
+    is_block child ∧ 
+    (∃ offset, field parent offset child)
 
--- I cannot directly encode reachability that easily I guess.
--- One idea to prove that everything reachable from root is marked black
--- is by maybe taking some invariants as assumptions and then proving the final
--- reachability goal somehow, I am not sure if Veil has a mechanism for that though..
-/- ghost relation reachable (parent: Ptr) (child: Ptr) :=
- -       (field_of parent child) ∨
- -       (¬ (field_of parent child) -> ∃ c', field_of parent c' ∧ reachable c' child)  -/
-
-
--- Reachable
--- R a a
--- R a b if a-> b is a filed
 
 
 after_init {
@@ -345,6 +338,12 @@ action CompleteGC (_c: Collector) {
 }
 
 
+--invariant [field_list_maintained] ∀ p o c, field p o c <-> fields_list.contains (Field.mk p o c)
+
+
+invariant [heap_start_is_block]
+ is_block heap_start
+
 invariant [block_always_lies_in_heap] ∀ ptr, is_block ptr →
   ptrToAddr heap_start ≤ ptrToAddr ptr ∧ ptrToAddr ptr < ptrToAddr heap_start + HeapSize
 
@@ -401,6 +400,16 @@ invariant [allocated_block_next_unused]
 invariant [world_paused_during_gc] ∀ m , (phase != idle ∧ phase != gc_requested ) ->  world_paused m
 
 
+-- everything block is either blue or white during idle phase, and every
+-- allocated ones are white
+invariant [allocated_white_when_idle]
+ ∀ p, phase = idle ∧ is_allocated p → color p = white
+
+
+-- everything block is either blue or white during gc_requested phase as well
+invariant [allocated_white_before_coloring]
+ ∀ p, (phase = idle ∨ phase = gc_requested) ∧ is_allocated p → color p = white
+
 -- when we are at mark phase, every root must've been colored gray(meaning its to be scanned during marking)
 invariant [all_roots_marked_gray_before_mark_phase] ∀ r, roots r ∧ phase = darken_roots_complete -> color r = gray
 
@@ -420,6 +429,29 @@ invariant [no_black_to_white_after_mark]
     phase = mark_complete ∧ color p = black ∧ field p off c →
       color c = black
 
+-- if a ptr has white color, then all its parents must be colored white as well
+-- Doesn't make sense to say white -> white edge, since the child might be
+-- reachable in other ways and may have been marked black.
+-- However, if a child is white, it must mean every parent of that child is also white.
+invariant [white_child_implies_all_white_parents]
+  ∀ p off c,
+    phase = mark_complete ∧ color c = white ∧ field p off c →
+      color p = white
+
+invariant [only_black_white_and_blue_in_mark_complete]
+  ∀ p,
+    phase = mark_complete ∧ is_block p →
+      color p = blue ∨ color p = white ∨ color p = black
+
+invariant [blue_never_child]
+  ∀ p,
+    is_block p ∧ color p = blue  →
+      ¬ (∃ parent, field_of parent p)
+
+invariant [blue_never_parent]
+  ∀ p,
+    is_block p ∧ color p = blue  →
+      ¬ (∃ child, field_of p child)
 
 invariant [roots_black_during_after_unreachables_sweeping]
     ∀ r, roots r ∧ phase = sweep -> color r = black
@@ -444,15 +476,14 @@ invariant [all_white_points_to_white_after_sweep] ∀ ptr child , phase = sweep_
 #gen_spec
 
 
--- #model_check interpreted
+-- #model_check 
 --   { Mutator := Fin 1, Collector := Fin 1, Ptr := Fin 8, HeapSize := 4 }
 --   { heap_start := (2 : Fin 8),
 --     null_ptr := (0 : Fin 8),
 --     ptrToAddr := fun p => p.val,
 --     addrToPtr := fun n => Fin.ofNat 8 n }
 
-#check RelationalTransitionSystem
+/- #check RelationalTransitionSystem -/
 
 -- #check_invariants
-
 end VerifiedGc
