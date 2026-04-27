@@ -14,7 +14,7 @@ This file intentionally captures the collector kernel first:
 The abstract graph-reachability specification from the paper is the next layer
 to add on top of this state machine. It is not encoded yet in this first pass.
 -/
-set_option veil.solver "grind"
+set_option veil.solver "grindAndSMT"
 
 veil module VerifiedGc
 
@@ -105,16 +105,16 @@ relation field (parent: Ptr) (offset: Fin (Nat.succ HeapSize)) (child: Ptr) : Bo
 #gen_state
 
 
-ghost relation is_free (ptr : Ptr) := 
+ghost relation is_free (ptr : Ptr) :=
     is_block ptr ∧ color ptr = blue
 
-ghost relation is_allocated (ptr : Ptr) := 
+ghost relation is_allocated (ptr : Ptr) :=
     is_block ptr ∧ color ptr ≠ blue ∧ color ptr ≠ uncolored
 
 -- TODO: is this problematic since I use existential?
-ghost relation field_of (parent: Ptr) (child: Ptr) := 
-    is_block parent ∧ 
-    is_block child ∧ 
+ghost relation field_of (parent: Ptr) (child: Ptr) :=
+    is_block parent ∧
+    is_block child ∧
     (∃ offset, field parent offset child)
 
 
@@ -476,7 +476,7 @@ invariant [all_white_points_to_white_after_sweep] ∀ ptr child , phase = sweep_
 #gen_spec
 
 
--- #model_check 
+-- #model_check
 --   { Mutator := Fin 1, Collector := Fin 1, Ptr := Fin 8, HeapSize := 4 }
 --   { heap_start := (2 : Fin 8),
 --     null_ptr := (0 : Fin 8),
@@ -485,5 +485,6 @@ invariant [all_white_points_to_white_after_sweep] ∀ ptr child , phase = sweep_
 
 /- #check RelationalTransitionSystem -/
 
--- #check_invariants
+--#check_invariants
+
 end VerifiedGc
