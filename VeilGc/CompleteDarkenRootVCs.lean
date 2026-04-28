@@ -2,6 +2,8 @@ import Veil
 import VeilGc
 
 open VerifiedGc
+
+set_option maxHeartbeats 0
 theorem CompleteDarkenRoot_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -39,7 +41,7 @@ theorem CompleteDarkenRoot_free_next_unique_predecessor (ρ : Type) (σ : Type) 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  aesop
 
 theorem CompleteDarkenRoot_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -78,4 +80,4 @@ theorem CompleteDarkenRoot_free_blocks_have_list_entry (ρ : Type) (σ : Type) (
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  aesop

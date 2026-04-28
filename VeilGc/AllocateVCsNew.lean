@@ -2,6 +2,8 @@ import Veil
 import VeilGc
 
 open VerifiedGc
+
+set_option maxHeartbeats 0
 theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)

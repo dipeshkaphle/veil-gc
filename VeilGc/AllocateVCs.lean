@@ -2,6 +2,8 @@ import Veil
 import VeilGc
 
 open VerifiedGc
+
+set_option maxHeartbeats 0
 open VerifiedGc.Color_EnumClass
 
 theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]

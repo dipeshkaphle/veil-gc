@@ -3,6 +3,8 @@ import VeilGc
 
 open VerifiedGc
 
+set_option maxHeartbeats 0
+
 theorem SweepStep_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -36,7 +38,14 @@ theorem SweepStep_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type)
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, h_fields_from, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro _ _ _ _ _
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    exact h_fields_from
+  · simp [hblack]
+    intro off parent child hne hfield
+    exact ⟨(h_fields_from off parent child hfield).1, hne, (h_fields_from off parent child hfield).2⟩
 
 theorem SweepStep_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -71,7 +80,14 @@ theorem SweepStep_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, h_free_no_fields, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro _ _ _ _ _
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    exact h_free_no_fields
+  · simp [hblack]
+    intro off parent child hp hblue hne
+    exact h_free_no_fields off parent child hp (hblue hne)
 
 theorem SweepStep_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -105,7 +121,14 @@ theorem SweepStep_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, h_field_unique, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro _ _ _ _ _
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    exact h_field_unique
+  · simp [hblack]
+    intro off parent child1 child2 _ hfield1 _ hfield2
+    exact h_field_unique off parent child1 child2 hfield1 hfield2
 
 theorem SweepStep_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -139,7 +162,14 @@ theorem SweepStep_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [M
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, h_field_bounds, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro _ _ _ _ _
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    exact h_field_bounds
+  · simp [hblack]
+    intro off parent child _ hfield
+    exact h_field_bounds off parent child hfield
 
 theorem SweepStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -244,7 +274,14 @@ theorem SweepStep_sweep_addr_points_to_block (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, h_next_by_size, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro _ _ _ hcurr _ _ hnext_lt
+  have haddr : th.ptrToAddr (th.addrToPtr st.sweep_addr) = st.sweep_addr := has.2.2.2.1 st.sweep_addr
+  have hnext := h_next_by_size (th.addrToPtr st.sweep_addr) hcurr
+  rw [haddr] at hnext
+  rcases hnext with hnext | hnext
+  · omega
+  · exact hnext
 
 theorem SweepStep_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -278,7 +315,14 @@ theorem SweepStep_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h_blue_never_parent, _, _, _, _⟩
+  intro _ _ _ _ _
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    exact h_blue_never_parent
+  · simp [hblack]
+    intro off parent hparent hblue child hchild hne
+    exact h_blue_never_parent off parent hparent (hblue hne) child hchild
 
 theorem SweepStep_reachables_still_black_after_unreachables_sweeping (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -313,4 +357,17 @@ theorem SweepStep_reachables_still_black_after_unreachables_sweeping (ρ : Type)
           Color_inhabited Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h_reach_black, _, _⟩
+  intro _ _ _ _ _
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    exact h_reach_black
+  · simp [hblack]
+    intro off parent child hphase hparent_black hparent_ne hfield
+    have hparent_black_old : st.color parent = Color_EnumClass.black := by
+      simpa [hparent_ne] using hparent_black
+    have hchild_black := h_reach_black off parent child hphase hparent_black_old hfield
+    by_cases hchild : th.addrToPtr st.sweep_addr = child
+    · exfalso
+      exact hblack (by simpa [hchild] using hchild_black)
+    · simpa [hchild] using hchild_black
