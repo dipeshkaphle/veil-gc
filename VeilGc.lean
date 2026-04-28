@@ -323,6 +323,7 @@ action BeginSweep (_c: Collector) {
   sweep_addr := ptrToAddr heap_start
   free_head := null_ptr
   free_tail := null_ptr
+  next O := null_ptr
   phase := sweep
 }
 
@@ -450,7 +451,8 @@ invariant [free_head_is_free_or_null]
 -- and cycles in the `next` chain.
 invariant [free_next_after_block]
   ∀ ptr, is_block ptr ∧ color ptr = blue ∧ next ptr ≠ null_ptr →
-    ptrToAddr ptr + size ptr ≤ ptrToAddr (next ptr)
+    ptrToAddr ptr + size ptr ≤ ptrToAddr (next ptr) ∧
+      (phase = sweep → ptrToAddr (next ptr) + size (next ptr) ≤ sweep_addr)
 
 invariant [free_next_unique_predecessor]
   ∀ pred1 pred2 target,
@@ -576,6 +578,15 @@ invariant [all_white_points_to_white_after_sweep] ∀ ptr child ,
           phase = sweep_complete ∧
             is_block ptr ∧ is_block child ∧ (∃ off, field ptr off child) ∧
               color ptr = white -> color child = white
+
+invariant [no_black_before_mark] ∀ p, phase = darken_roots_complete → color p ≠ black
+invariant [roots_gray_or_black_in_mark] ∀ r, roots r ∧ phase = mark → color r = gray ∨ color r = black
+invariant [only_white_and_blue_in_sweep_complete] ∀ p, phase = sweep_complete ∧ is_block p ∧ color p ≠ blue → color p = white
+invariant [color_implies_block] ∀ p, color p ≠ uncolored → is_block p
+invariant [gray_only_in_mark] ∀ p, color p = gray → phase = mark ∨ phase = mark_complete ∨ phase = darken_roots ∨ phase = darken_roots_complete
+invariant [no_black_in_sweep_complete] ∀ p, phase = sweep_complete → color p ≠ black
+invariant [no_white_in_reset_colors] ∀ p, phase = reset_colors → color p ≠ white
+invariant [black_edges_in_sweep] ∀ off p c, (phase = sweep ∨ phase = reset_colors) ∧ color p = black ∧ field p off c → color c = black
 
 #gen_spec
 

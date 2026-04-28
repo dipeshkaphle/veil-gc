@@ -204,7 +204,70 @@ theorem SweepStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, h_null_not_block, _, _, _, h_valid_size, _, _, _, _, _, _, _, _, _, h_next_after, h_unique, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro hphase _ _ hcurr _
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    exact h_unique
+  · simp [hblack]
+    by_cases htail_null : st.free_tail = th.null_ptr
+    · simp [htail_null]
+      intro pred1 pred2 target hp1 hc1 hp2 hc2 hn1 hn2 htarget
+      by_cases hpred1 : th.addrToPtr st.sweep_addr = pred1
+      · simp [hpred1] at hn1
+        exact False.elim (htarget hn1.symm)
+      · by_cases hpred2 : th.addrToPtr st.sweep_addr = pred2
+        · simp [hpred2] at hn2
+          exact False.elim (htarget hn2.symm)
+        · exact h_unique pred1 pred2 target hp1 (hc1 hpred1) hp2 (hc2 hpred2)
+            (by simpa [hpred1] using hn1) (by simpa [hpred2] using hn2) htarget
+    · simp [htail_null]
+      intro pred1 pred2 target hp1 hc1 hp2 hc2 hn1 hn2 htarget
+      have haddr : th.ptrToAddr (th.addrToPtr st.sweep_addr) = st.sweep_addr := has.2.2.2.1 st.sweep_addr
+      have hcurr_size : 0 < st.size (th.addrToPtr st.sweep_addr) := h_valid_size (th.addrToPtr st.sweep_addr) hcurr
+      have no_old_points_curr :
+          ∀ pred,
+            st.is_block pred = true →
+            st.color pred = Color_EnumClass.blue →
+            st.next pred = th.addrToPtr st.sweep_addr →
+            False := by
+        intro pred hpred hpred_blue hnext
+        have hnext_ne : ¬st.next pred = th.null_ptr := by
+          intro hnull
+          have hcurr_null : th.addrToPtr st.sweep_addr = th.null_ptr := by
+            rw [← hnext, hnull]
+          rw [hcurr_null] at hcurr
+          simp [h_null_not_block] at hcurr
+        have hle := (h_next_after pred hpred hpred_blue hnext_ne).2 hphase
+        rw [hnext, haddr] at hle
+        omega
+      by_cases hpred1_curr : th.addrToPtr st.sweep_addr = pred1
+      · simp [hpred1_curr] at hn1
+        exact False.elim (htarget hn1.symm)
+      · by_cases hpred2_curr : th.addrToPtr st.sweep_addr = pred2
+        · simp [hpred2_curr] at hn2
+          exact False.elim (htarget hn2.symm)
+        · by_cases hpred1_tail : st.free_tail = pred1
+          · by_cases hpred2_tail : st.free_tail = pred2
+            · exact hpred1_tail.symm.trans hpred2_tail
+            · have hn1' : th.addrToPtr st.sweep_addr = target := by
+                simpa [hpred1_curr, hpred1_tail] using hn1
+              have hn2' : st.next pred2 = target := by
+                simpa [hpred2_curr, hpred2_tail] using hn2
+              have hnext2 : st.next pred2 = th.addrToPtr st.sweep_addr := by
+                rw [hn2', ← hn1']
+              exact False.elim (no_old_points_curr pred2 hp2 (hc2 hpred2_curr) hnext2)
+          · by_cases hpred2_tail : st.free_tail = pred2
+            · have hn1' : st.next pred1 = target := by
+                simpa [hpred1_curr, hpred1_tail] using hn1
+              have hn2' : th.addrToPtr st.sweep_addr = target := by
+                simpa [hpred2_curr, hpred2_tail] using hn2
+              have hnext1 : st.next pred1 = th.addrToPtr st.sweep_addr := by
+                rw [hn1', ← hn2']
+              exact False.elim (no_old_points_curr pred1 hp1 (hc1 hpred1_curr) hnext1)
+            · exact h_unique pred1 pred2 target hp1 (hc1 hpred1_curr) hp2 (hc2 hpred2_curr)
+                (by simpa [hpred1_curr, hpred1_tail] using hn1)
+                (by simpa [hpred2_curr, hpred2_tail] using hn2) htarget
 
 theorem SweepStep_swept_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -239,7 +302,121 @@ theorem SweepStep_swept_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mut
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, h_null_not_block, _, h_no_overlap, _, h_valid_size, _, _, _, _, _, _, _, _, _, h_next_after, _, _, h_swept, h_tail_free, h_head_tail, h_tail_next_null, h_tail_before, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro hphase _ _ hcurr _
+  have haddr : th.ptrToAddr (th.addrToPtr st.sweep_addr) = st.sweep_addr := has.2.2.2.1 st.sweep_addr
+  have before_or_curr :
+      ∀ ptr,
+        st.is_block ptr = true →
+        th.ptrToAddr ptr + st.size ptr ≤ st.sweep_addr + st.size (th.addrToPtr st.sweep_addr) →
+          ptr = th.addrToPtr st.sweep_addr ∨ th.ptrToAddr ptr + st.size ptr ≤ st.sweep_addr := by
+    intro ptr hptr hend
+    by_cases hptr_curr : ptr = th.addrToPtr st.sweep_addr
+    · exact Or.inl hptr_curr
+    · exact Or.inr (by
+        by_cases hlt : th.ptrToAddr ptr < st.sweep_addr
+        · have hsep := h_no_overlap ptr (th.addrToPtr st.sweep_addr) hptr hcurr (by simpa [haddr] using hlt)
+          simpa [haddr] using hsep
+        · have hge : st.sweep_addr ≤ th.ptrToAddr ptr := le_of_not_gt hlt
+          by_cases heq : th.ptrToAddr ptr = st.sweep_addr
+          · have hptr_eq : ptr = th.addrToPtr st.sweep_addr := by
+              calc
+                ptr = th.addrToPtr (th.ptrToAddr ptr) := (has.2.1 ptr).symm
+                _ = th.addrToPtr st.sweep_addr := by rw [heq]
+            exact False.elim (hptr_curr hptr_eq)
+          · have hgt : st.sweep_addr < th.ptrToAddr ptr := lt_of_le_of_ne hge (Ne.symm heq)
+            have hsep := h_no_overlap (th.addrToPtr st.sweep_addr) ptr hcurr hptr (by simpa [haddr] using hgt)
+            have hsize := h_valid_size ptr hptr
+            omega)
+  by_cases hblack : st.color (th.addrToPtr st.sweep_addr) = Color_EnumClass.black
+  · simp [hblack]
+    intro _ ptr hptr hblue hend
+    rcases before_or_curr ptr hptr hend with hptr_curr | hbefore
+    · subst ptr
+      exfalso
+      have h : Color_EnumClass.black = Color_EnumClass.blue := by
+        simpa [hblack] using hblue
+      exact Color_Enum.distinct.2.2.2.2.2.2.1 h.symm
+    · exact h_swept hphase ptr hptr hblue hbefore
+  · simp [hblack]
+    by_cases htail : st.free_tail = th.null_ptr
+    · simp [htail]
+      intro _ ptr hptr hblue hend
+      rcases before_or_curr ptr hptr hend with hptr_curr | hbefore
+      · exact Or.inl hptr_curr
+      · exact Or.inr (by
+          have hptr_ne_curr : ¬th.addrToPtr st.sweep_addr = ptr := by
+            intro h
+            subst ptr
+            rw [haddr] at hbefore
+            have hs := h_valid_size (th.addrToPtr st.sweep_addr) hcurr
+            omega
+          rcases h_swept hphase ptr hptr (hblue hptr_ne_curr) hbefore with hhead | ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+          · subst ptr
+            have hhead_null : st.free_head = th.null_ptr := (h_head_tail hphase).mpr htail
+            simp [hhead_null, h_null_not_block] at hptr
+          · refine ⟨pred, hpred_block, ?_, ?_⟩
+            · intro hpred_curr
+              exact hpred_blue
+            · have hpred_ne_curr : ¬th.addrToPtr st.sweep_addr = pred := by
+                intro hpred_curr
+                subst pred
+                have hnext_ne : ¬st.next (th.addrToPtr st.sweep_addr) = th.null_ptr := by
+                  intro hnull
+                  rw [hnull] at hpred_next
+                  subst ptr
+                  simp [h_null_not_block] at hptr
+                have hnext_le := (h_next_after (th.addrToPtr st.sweep_addr) hcurr hpred_blue hnext_ne).1
+                rw [hpred_next, haddr] at hnext_le
+                have hs := h_valid_size ptr hptr
+                omega
+              simp [hpred_ne_curr, hpred_next])
+    · simp [htail]
+      intro _ ptr hptr hblue hend
+      rcases before_or_curr ptr hptr hend with hptr_curr | hbefore
+      · exact Or.inr (by
+          have htail_ne_curr : ¬th.addrToPtr st.sweep_addr = st.free_tail := by
+            intro htail_curr
+            have hbefore_tail := h_tail_before hphase htail
+            rw [← htail_curr, haddr] at hbefore_tail
+            have hs := h_valid_size (th.addrToPtr st.sweep_addr) hcurr
+            omega
+          refine ⟨st.free_tail, ?_, ?_, ?_⟩
+          · exact (h_tail_free hphase htail).1
+          · intro _
+            exact (h_tail_free hphase htail).2
+          · simp [hptr_curr, htail_ne_curr])
+      · have hptr_ne_curr : ¬th.addrToPtr st.sweep_addr = ptr := by
+          intro h
+          subst ptr
+          rw [haddr] at hbefore
+          have hs := h_valid_size (th.addrToPtr st.sweep_addr) hcurr
+          omega
+        rcases h_swept hphase ptr hptr (hblue hptr_ne_curr) hbefore with hhead | ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+        · exact Or.inl hhead
+        · exact Or.inr (by
+            refine ⟨pred, hpred_block, ?_, ?_⟩
+            · intro _
+              exact hpred_blue
+            · have hpred_ne_curr : ¬th.addrToPtr st.sweep_addr = pred := by
+                intro hpred_curr
+                subst pred
+                have hnext_ne : ¬st.next (th.addrToPtr st.sweep_addr) = th.null_ptr := by
+                  intro hnull
+                  rw [hnull] at hpred_next
+                  subst ptr
+                  simp [h_null_not_block] at hptr
+                have hnext_le := (h_next_after (th.addrToPtr st.sweep_addr) hcurr hpred_blue hnext_ne).1
+                rw [hpred_next, haddr] at hnext_le
+                have hs := h_valid_size ptr hptr
+                omega
+              have hpred_ne_tail : ¬st.free_tail = pred := by
+                intro hpred_tail
+                have htail_next := h_tail_next_null hphase htail
+                rw [hpred_tail, hpred_next] at htail_next
+                rw [htail_next] at hptr
+                simp [h_null_not_block] at hptr
+              simp [hpred_ne_curr, hpred_ne_tail, hpred_next])
 
 theorem SweepStep_sweep_addr_points_to_block (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)

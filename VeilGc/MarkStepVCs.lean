@@ -281,7 +281,35 @@ theorem MarkStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator :
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h_unique, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro _ t _ _ pred1 pred2 target hp1 hblue1 hp2 hblue2 hn1 hn2 htarget
+  have oldblue1 : st.color pred1 = Color_EnumClass.blue := by
+    by_cases ht : t = pred1
+    · have h : Color_EnumClass.black = Color_EnumClass.blue := by
+        simpa [ht] using hblue1
+      exact False.elim (Color_Enum.distinct.2.2.2.2.2.2.1 h.symm)
+    · simp [ht] at hblue1
+      by_cases hcond :
+          (∃ offset, st.field t offset pred1 = true) ∧ st.is_block pred1 = true ∧
+            ¬st.color pred1 = Color_EnumClass.blue ∧ ¬st.color pred1 = Color_EnumClass.black
+      · have h : Color_EnumClass.gray = Color_EnumClass.blue := by
+          simpa [hcond] using hblue1
+        exact False.elim (Color_Enum.distinct.2.2.2.2.2.1 h.symm)
+      · simpa [hcond] using hblue1
+  have oldblue2 : st.color pred2 = Color_EnumClass.blue := by
+    by_cases ht : t = pred2
+    · have h : Color_EnumClass.black = Color_EnumClass.blue := by
+        simpa [ht] using hblue2
+      exact False.elim (Color_Enum.distinct.2.2.2.2.2.2.1 h.symm)
+    · simp [ht] at hblue2
+      by_cases hcond :
+          (∃ offset, st.field t offset pred2 = true) ∧ st.is_block pred2 = true ∧
+            ¬st.color pred2 = Color_EnumClass.blue ∧ ¬st.color pred2 = Color_EnumClass.black
+      · have h : Color_EnumClass.gray = Color_EnumClass.blue := by
+          simpa [hcond] using hblue2
+        exact False.elim (Color_Enum.distinct.2.2.2.2.2.1 h.symm)
+      · simpa [hcond] using hblue2
+  exact h_unique pred1 pred2 target hp1 oldblue1 hp2 oldblue2 hn1 hn2 htarget
 
 theorem MarkStep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -316,7 +344,37 @@ theorem MarkStep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h_free_list, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩
+  intro hphase t _ hgray hnot_sweep ptr hptr hblue
+  have oldblue : st.color ptr = Color_EnumClass.blue := by
+    by_cases ht : t = ptr
+    · have h : Color_EnumClass.black = Color_EnumClass.blue := by
+        simpa [ht] using hblue
+      exact False.elim (Color_Enum.distinct.2.2.2.2.2.2.1 h.symm)
+    · simp [ht] at hblue
+      by_cases hcond :
+          (∃ offset, st.field t offset ptr = true) ∧ st.is_block ptr = true ∧
+            ¬st.color ptr = Color_EnumClass.blue ∧ ¬st.color ptr = Color_EnumClass.black
+      · have h : Color_EnumClass.gray = Color_EnumClass.blue := by
+          simpa [hcond] using hblue
+        exact False.elim (Color_Enum.distinct.2.2.2.2.2.1 h.symm)
+      · simpa [hcond] using hblue
+  rcases h_free_list hnot_sweep ptr hptr oldblue with hhead | ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+  · exact Or.inl hhead
+  · exact Or.inr (by
+      refine ⟨pred, hpred_block, ?_, hpred_next⟩
+      by_cases ht : t = pred
+      · subst pred
+        exfalso
+        have h : Color_EnumClass.gray = Color_EnumClass.blue := by
+          simpa [hpred_blue] using hgray.symm
+        exact Color_Enum.distinct.2.2.2.2.2.1 h.symm
+      · simp [ht]
+        by_cases hcond :
+            (∃ offset, st.field t offset pred = true) ∧ st.is_block pred = true ∧
+              ¬st.color pred = Color_EnumClass.blue ∧ ¬st.color pred = Color_EnumClass.black
+        · exact False.elim (hcond.2.2.1 hpred_blue)
+        · simpa [ht, hcond] using hpred_blue)
 
 theorem MarkStep_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -384,7 +442,7 @@ theorem MarkStep_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type)
           apply hcond_c
           exact ⟨hexists, hfield_to.1, hfield_to.2, hnotblack⟩
         left
-        simp [htc, hcond_c, hblackc]
+        simp [htc, hblackc]
     · have hblack_p' := hblack_p htp
       by_cases hcond_p :
           (∃ offset, st.field t offset p = true) ∧ st.is_block p = true ∧
@@ -404,10 +462,10 @@ theorem MarkStep_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type)
         · cases hcolor_c with
           | inl hblackc =>
               left
-              simp [hcond_c, hblackc]
+              simp [hblackc]
           | inr hgrayc =>
               right
-              simp [hcond_c, hgrayc]
+              simp [hgrayc]
 
 theorem MarkStep_blue_never_child_outside_sweep (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
