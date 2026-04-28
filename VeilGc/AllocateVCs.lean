@@ -38,6 +38,7 @@ theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutat
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  classical
   intro hphase hreq t ht hb hentry hle
   split
   · intro ptr hptr
@@ -499,7 +500,57 @@ theorem Allocate_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht hblue hlist hsize
+  rcases hinv with ⟨h_heap_start, h_block_heap, h_null_not_block, h_fits, h_no_overlap, h_next_by_size,
+    h_valid_size, h_block_color, h_roots_alloc, h_fields_from, h_fields_to, h_free_no_fields,
+    h_field_unique, h_field_bounds, h_free_next_wf, h_free_head_ok, h_free_next_after,
+    h_free_next_unique, h_free_list_entry, h_swept_free_list_entry, h_tail_free, h_head_tail,
+    h_tail_next_null, h_tail_before, h_alloc_next_unused, h_sweep_bounds, h_sweep_points,
+    h_world_paused, h_white_before, h_roots_gray, h_black_edges, h_roots_black, h_no_black_white,
+    h_white_child, h_mark_complete_colors, h_blue_no_child, h_blue_no_parent, h_roots_black_sweep,
+    h_reach_black_sweep, h_roots_white_sweep, h_white_points_white⟩
+  split
+  · intro ptr hptr
+    by_cases htptr : t = ptr
+    · subst ptr
+      constructor
+      · intro _
+        exact ht
+      · intro h
+        have h' : white = blue := by
+          simpa using h
+        exact Color_Enum.distinct.2.2.2.2.1 h'.symm
+    · by_cases hr : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = ptr
+      · subst ptr
+        have hroot_old := h_roots_alloc (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) hptr
+        have hblock_old : st.is_block (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) = true := hroot_old.1
+        have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) := by
+          rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+          omega
+        have hoverlap := h_no_overlap t (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) ht hblock_old ht_lt_rem
+        rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hoverlap
+        have : False := by
+          omega
+        exact this.elim
+      · have hroot_old := h_roots_alloc ptr hptr
+        constructor
+        · intro _
+          exact hroot_old.1
+        · simpa [htptr, hr] using hroot_old.2
+  · intro ptr hptr
+    by_cases htptr : t = ptr
+    · subst ptr
+      constructor
+      · exact ht
+      · intro h
+        have h' : white = blue := by
+          simpa using h
+        exact Color_Enum.distinct.2.2.2.2.1 h'.symm
+    · have hroot_old := h_roots_alloc ptr hptr
+      constructor
+      · exact hroot_old.1
+      · simpa [htptr] using hroot_old.2
 
 theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -535,6 +586,7 @@ theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  classical
   intro hphase hreq t ht hblue hlist hsize
   split
   · intro off parent child hne_t hne_rem hfield
@@ -583,6 +635,7 @@ theorem Allocate_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  classical
   intro hphase hreq t ht hblue hlist hsize
   split
   · intro off parent child hnotSweep hne_parent_t hne_parent_rem hfield
@@ -777,7 +830,110 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht hblue hlist hsize
+  rcases hinv with ⟨h_heap_start, h_block_heap, h_null_not_block, h_fits, h_no_overlap, h_next_by_size,
+    h_valid_size, h_block_color, h_roots_alloc, h_fields_from, h_fields_to, h_free_no_fields,
+    h_field_unique, h_field_bounds, h_free_next_wf, h_free_head_ok, h_free_next_after,
+    h_free_next_unique, h_free_list_entry, h_swept_free_list_entry, h_tail_free, h_head_tail,
+    h_tail_next_null, h_tail_before, h_alloc_next_unused, h_sweep_bounds, h_sweep_points,
+    h_world_paused, h_white_before, h_roots_gray, h_black_edges, h_roots_black, h_no_black_white,
+    h_white_child, h_mark_complete_colors, h_blue_no_child, h_blue_no_parent, h_roots_black_sweep,
+    h_reach_black_sweep, h_roots_white_sweep, h_white_points_white⟩
+  split
+  · intro ptr hptr_block hptr_blue hne_t hptr_next_ne
+    have ht_ne_rem : ¬t = th.addrToPtr (th.ptrToAddr t + ↑reqSize) := by
+      intro h
+      have hc := congrArg th.ptrToAddr h
+      rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hc
+      have hpos := hreq
+      omega
+    by_cases hremp : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = ptr
+    · subst ptr
+      have hnext_ne : ¬st.next t = th.null_ptr := by
+        simpa [hne_t] using hptr_next_ne
+      have hnext_old := h_free_next_wf t ht hblue hnext_ne
+      constructor
+      · intro _
+        simpa [hne_t] using hnext_old.1
+      · by_cases hself : st.next t = t
+        · have hafter := h_free_next_after t ht hblue hnext_ne
+          have : False := by
+            have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
+              simpa [hself] using hafter
+            omega
+          exact this.elim
+        · by_cases hremnext : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = st.next t
+          · have ht_next : ¬t = st.next t := by
+              intro h
+              exact hne_t (h.trans hremnext.symm)
+            simp [ht_ne_rem, ht_next, hremnext]
+          · have hcolor := hnext_old.2
+            have ht_next : ¬t = st.next t := by
+              intro h
+              exact hself h.symm
+            simp [ht_ne_rem, ht_next, hremnext, hcolor]
+    · by_cases hpred : st.is_block ptr = true ∧ st.color ptr = blue ∧ st.next ptr = t
+      · constructor
+        · intro hne
+          simp [hne_t, hremp, hpred] at hne
+        · simp [ht_ne_rem, hne_t, hremp, hpred]
+      · have hptr_block_old : st.is_block ptr = true := hptr_block hremp
+        have hptr_blue_old : st.color ptr = blue := by
+          simpa [hne_t, hremp] using hptr_blue
+        have hnext_ne : ¬st.next ptr = th.null_ptr := by
+          simpa [hne_t, hremp, hpred] using hptr_next_ne
+        have hnext_old := h_free_next_wf ptr hptr_block_old hptr_blue_old hnext_ne
+        constructor
+        · intro _
+          simpa [hne_t, hremp, hpred] using hnext_old.1
+        · have hnext_not_t : st.next ptr ≠ t := by
+            intro hnext_eq
+            exact hpred ⟨hptr_block_old, hptr_blue_old, hnext_eq⟩
+          by_cases hremnext : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = st.next ptr
+          · have ht_next : ¬t = st.next ptr := by
+              intro h
+              exact hnext_not_t h.symm
+            simp [ht_ne_rem, hne_t, hremp, hpred, ht_next, hremnext]
+          · have hcolor := hnext_old.2
+            have ht_next : ¬t = st.next ptr := by
+              intro h
+              exact hnext_not_t h.symm
+            simp [ht_ne_rem, hne_t, hremp, hpred, ht_next, hremnext, hcolor]
+  · intro ptr hptr_block hptr_blue hne_t hptr_next_ne
+    by_cases hpred : st.is_block ptr = true ∧ st.color ptr = blue ∧ st.next ptr = t
+    · have hnext_ne : ¬st.next t = th.null_ptr := by
+        simpa [hne_t, hpred] using hptr_next_ne
+      have hnext_old := h_free_next_wf t ht hblue hnext_ne
+      constructor
+      · simpa [hne_t, hpred] using hnext_old.1
+      · by_cases hself : st.next t = t
+        · have hafter := h_free_next_after t ht hblue hnext_ne
+          have : False := by
+            have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
+              simpa [hself] using hafter
+            omega
+          exact this.elim
+        · have hcolor := hnext_old.2
+          have ht_next : ¬t = st.next t := by
+            intro h
+            exact hself h.symm
+          simpa [hne_t, hpred, ht_next] using hcolor
+    · have hptr_blue_old : st.color ptr = blue := by
+        simpa [hne_t] using hptr_blue
+      have hnext_ne : ¬st.next ptr = th.null_ptr := by
+        simpa [hne_t, hpred] using hptr_next_ne
+      have hnext_old := h_free_next_wf ptr hptr_block hptr_blue_old hnext_ne
+      constructor
+      · simpa [hne_t, hpred] using hnext_old.1
+      · have hnext_not_t : st.next ptr ≠ t := by
+          intro hnext_eq
+          exact hpred ⟨hptr_block, hptr_blue_old, hnext_eq⟩
+        have ht_next : ¬t = st.next ptr := by
+          intro h
+          exact hnext_not_t h.symm
+        have hcolor := hnext_old.2
+        simpa [hne_t, hpred, ht_next] using hcolor
 
 theorem Allocate_free_head_is_free_or_null (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -893,7 +1049,87 @@ theorem Allocate_free_next_after_block (ρ : Type) (σ : Type) (Mutator : Type) 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht hblue hlist hsize
+  rcases hinv with ⟨h_heap_start, h_block_heap, h_null_not_block, h_fits, h_no_overlap, h_next_by_size,
+    h_valid_size, h_block_color, h_roots_alloc, h_fields_from, h_fields_to, h_free_no_fields,
+    h_field_unique, h_field_bounds, h_free_next_wf, h_free_head_ok, h_free_next_after,
+    h_free_next_unique, h_free_list_entry, h_swept_free_list_entry, h_tail_free, h_head_tail,
+    h_tail_next_null, h_tail_before, h_alloc_next_unused, h_sweep_bounds, h_sweep_points,
+    h_world_paused, h_white_before, h_roots_gray, h_black_edges, h_roots_black, h_no_black_white,
+    h_white_child, h_mark_complete_colors, h_blue_no_child, h_blue_no_parent, h_roots_black_sweep,
+    h_reach_black_sweep, h_roots_white_sweep, h_white_points_white⟩
+  split
+  · intro ptr hptr_block hptr_blue hne_t hptr_next_ne
+    by_cases hremp : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = ptr
+    · subst ptr
+      have hnext_ne : ¬st.next t = th.null_ptr := by
+        simpa [hne_t, hremp] using hptr_next_ne
+      have hafter_old := h_free_next_after t ht hblue hnext_ne
+      have hsum :
+          th.ptrToAddr (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) + (st.size t - ↑reqSize) =
+            th.ptrToAddr t + st.size t := by
+        rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+        omega
+      have hafter_new :
+          th.ptrToAddr (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) + (st.size t - ↑reqSize) ≤
+            th.ptrToAddr (st.next t) := by
+        simpa [hsum] using hafter_old
+      simpa [hne_t, hremp] using hafter_new
+    · by_cases hpred : st.is_block ptr = true ∧ st.color ptr = blue ∧ st.next ptr = t
+      · have hptr_block_old : st.is_block ptr = true := hptr_block hremp
+        have hptr_blue_old : st.color ptr = blue := by
+          simpa [hne_t, hremp] using hptr_blue
+        have ht_ne_null : t ≠ th.null_ptr := by
+          intro ht_null
+          have : st.is_block th.null_ptr = true := by
+            simpa [ht_null] using ht
+          simpa [h_null_not_block] using this
+        have hnext_ne_old : ¬st.next ptr = th.null_ptr := by
+          intro hnext_eq
+          exact ht_ne_null (by simpa [hpred.2.2] using hnext_eq)
+        have hafter_old := h_free_next_after ptr hptr_block_old hptr_blue_old hnext_ne_old
+        have hle : th.ptrToAddr t ≤ th.ptrToAddr (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) := by
+          rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+          omega
+        have hafter_new :
+            th.ptrToAddr ptr + st.size ptr ≤ th.ptrToAddr (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) := by
+          omega
+        simpa [hne_t, hremp, hpred] using hafter_new
+      · have hptr_block_old : st.is_block ptr = true := hptr_block hremp
+        have hptr_blue_old : st.color ptr = blue := by
+          simpa [hne_t, hremp] using hptr_blue
+        have hnext_ne : ¬st.next ptr = th.null_ptr := by
+          simpa [hne_t, hremp, hpred] using hptr_next_ne
+        have hafter_old := h_free_next_after ptr hptr_block_old hptr_blue_old hnext_ne
+        simpa [hne_t, hremp, hpred] using hafter_old
+  · intro ptr hptr_block hptr_blue hne_t hptr_next_ne
+    by_cases hpred : st.is_block ptr = true ∧ st.color ptr = blue ∧ st.next ptr = t
+    · have hptr_blue_old : st.color ptr = blue := by
+        simpa [hne_t] using hptr_blue
+      have ht_ne_null : t ≠ th.null_ptr := by
+        intro ht_null
+        have : st.is_block th.null_ptr = true := by
+          simpa [ht_null] using ht
+        simpa [h_null_not_block] using this
+      have hnext_ne_old : ¬st.next ptr = th.null_ptr := by
+        intro hnext_eq
+        exact ht_ne_null (by simpa [hpred.2.2] using hnext_eq)
+      have hafter_old := h_free_next_after ptr hptr_block hptr_blue_old hnext_ne_old
+      have hnext_ne : ¬st.next t = th.null_ptr := by
+        simpa [hne_t, hpred] using hptr_next_ne
+      have hafter_t := h_free_next_after t ht hblue hnext_ne
+      have hpos := h_valid_size t ht
+      have hle : th.ptrToAddr t ≤ th.ptrToAddr (st.next t) := by
+        omega
+      have hafter_new : th.ptrToAddr ptr + st.size ptr ≤ th.ptrToAddr (st.next t) := by
+        omega
+      simpa [hne_t, hpred] using hafter_new
+    · have hptr_blue_old : st.color ptr = blue := by
+        simpa [hne_t] using hptr_blue
+      have hnext_ne : ¬st.next ptr = th.null_ptr := by
+        simpa [hne_t, hpred] using hptr_next_ne
+      have hafter_old := h_free_next_after ptr hptr_block hptr_blue_old hnext_ne
+      simpa [hne_t, hpred] using hafter_old
 
 theorem Allocate_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -930,7 +1166,7 @@ theorem Allocate_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator :
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  all_goals simp_all
 
 theorem Allocate_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -967,7 +1203,191 @@ theorem Allocate_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht hblue hlist hsize
+  rcases hinv with ⟨h_heap_start, h_block_heap, h_null_not_block, h_fits, h_no_overlap, h_next_by_size,
+    h_valid_size, h_block_color, h_roots_alloc, h_fields_from, h_fields_to, h_free_no_fields,
+    h_field_unique, h_field_bounds, h_free_next_wf, h_free_head_ok, h_free_next_after,
+    h_free_next_unique, h_free_list_entry, h_swept_free_list_entry, h_tail_free, h_head_tail,
+    h_tail_next_null, h_tail_before, h_alloc_next_unused, h_sweep_bounds, h_sweep_points,
+    h_world_paused, h_white_before, h_roots_gray, h_black_edges, h_roots_black, h_no_black_white,
+    h_white_child, h_mark_complete_colors, h_blue_no_child, h_blue_no_parent, h_roots_black_sweep,
+    h_reach_black_sweep, h_roots_white_sweep, h_white_points_white⟩
+  split
+  · by_cases hhead : t = st.free_head
+    · simp [hhead]
+      intro _ ptr hptr_block hptr_blue
+      by_cases hremp : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = ptr
+      · left
+        exact hremp
+      · by_cases htptr : t = ptr
+        · subst ptr
+          have hcontra : False := by
+            have h := hptr_blue
+            simp at h
+            exact Color_Enum.distinct.2.2.2.2.1 h.symm
+          exact hcontra.elim
+        · have hptr_block_old : st.is_block ptr = true := hptr_block hremp
+          have hptr_blue_old : st.color ptr = blue := by
+            simpa [htptr, hremp] using hptr_blue
+          have hentry_old := h_free_list_entry (by simpa [hphase]) ptr hptr_block_old hptr_blue_old
+          rcases hentry_old with hentry_old | hentry_old
+          · have : ptr = t := by simpa [hhead] using hentry_old
+            exact (htptr this).elim
+          · rcases hentry_old with ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+            by_cases hpred_t : pred = t
+            · subst pred
+              right
+              refine ⟨th.addrToPtr (th.ptrToAddr t + ↑reqSize), ?_, ?_, ?_⟩
+              · intro hrem
+                exact False.elim (hrem rfl)
+              · simp
+              · simp [hpred_next]
+            · right
+              refine ⟨pred, ?_, ?_, ?_⟩
+              · intro hrem
+                exact hpred_block
+              · have hpred_blue' : st.color pred = blue := hpred_blue
+                simpa [hpred_t, hremp] using hpred_blue'
+              · have hpred_next' : st.next pred = ptr := hpred_next
+                simpa [hpred_t, hremp] using hpred_next'
+    · simp [hhead]
+      intro _ ptr hptr_block hptr_blue
+      by_cases hremp : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = ptr
+      · right
+        rcases hlist with hlist | hlist
+        · exact (hhead hlist).elim
+        · rcases hlist with ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+          refine ⟨pred, ?_, ?_, ?_⟩
+          · intro _
+            exact hpred_block
+          · simpa [hremp] using hpred_blue
+          · simpa [hremp, hpred_next] using hpred_next
+      · by_cases htptr : t = ptr
+        · subst ptr
+          have hcontra : False := by
+            have h := hptr_blue
+            simp at h
+            exact Color_Enum.distinct.2.2.2.2.1 h.symm
+          exact hcontra.elim
+        · have hptr_block_old : st.is_block ptr = true := hptr_block hremp
+          have hptr_blue_old : st.color ptr = blue := by
+            simpa [htptr, hremp] using hptr_blue
+          have hentry_old := h_free_list_entry (by simpa [hphase]) ptr hptr_block_old hptr_blue_old
+          rcases hentry_old with hentry_old | hentry_old
+          · left
+            exact hentry_old
+          · rcases hentry_old with ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+            by_cases hpred_t : pred = t
+            · subst pred
+              right
+              refine ⟨th.addrToPtr (th.ptrToAddr t + ↑reqSize), ?_, ?_, ?_⟩
+              · intro hrem
+                exact False.elim (hrem rfl)
+              · simp
+              · simp [hpred_next]
+            · right
+              refine ⟨pred, ?_, ?_, ?_⟩
+              · intro hrem
+                exact hpred_block
+              · have hpred_blue' : st.color pred = blue := hpred_blue
+                simpa [hpred_t, hremp] using hpred_blue'
+              · have hpred_next' : st.next pred = ptr := hpred_next
+                simpa [hpred_t, hremp] using hpred_next'
+  · by_cases hhead : t = st.free_head
+    · simp [hhead]
+      intro _ ptr hptr_block hptr_blue
+      by_cases htptr : t = ptr
+      · subst ptr
+        have hcontra : False := by
+          have h := hptr_blue
+          simp at h
+          exact Color_Enum.distinct.2.2.2.2.1 h.symm
+        exact hcontra.elim
+      · have hptr_blue_old : st.color ptr = blue := by
+          simpa [htptr] using hptr_blue
+        have hentry_old := h_free_list_entry (by simpa [hphase]) ptr hptr_block hptr_blue_old
+        rcases hentry_old with hentry_old | hentry_old
+        · have : ptr = t := by simpa [hhead] using hentry_old
+          exact (htptr this).elim
+        · right
+          rcases hentry_old with ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+          by_cases hpred_t : pred = t
+          · subst pred
+            have hnext_ne : ¬st.next t = th.null_ptr := by
+              intro hnext_null
+              have : st.is_block th.null_ptr = true := by
+                have hptr_null : ptr = th.null_ptr := by
+                  rw [← hpred_next, hnext_null]
+                simpa [hptr_null] using hptr_block
+              simpa [h_null_not_block] using this
+            have hnext := h_free_next_wf t ht hblue hnext_ne
+            have hnext_not_t : ¬st.next t = t := by
+              intro hself
+              have hafter := h_free_next_after t ht hblue hnext_ne
+              have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
+                simpa [hself] using hafter
+              have hpos := h_valid_size t ht
+              omega
+            have ht_next : ¬t = st.next t := by
+              intro h
+              exact hnext_not_t h.symm
+            refine ⟨st.next t, ?_, ?_, ?_⟩
+            · exact hnext.1
+            · simpa [ht_next] using hnext.2
+            · simpa [ht_next, hpred_next]
+          · have hpred_next_not_t : ¬st.next pred = t := by
+              intro hnext_t
+              exact htptr (by rw [← hpred_next, hnext_t])
+            refine ⟨pred, hpred_block, ?_, ?_⟩
+            · simpa [hpred_t] using hpred_blue
+            · simpa [hpred_t, hpred_next_not_t] using hpred_next
+    · simp [hhead]
+      intro _ ptr hptr_block hptr_blue
+      by_cases htptr : t = ptr
+      · subst ptr
+        have hcontra : False := by
+          have h := hptr_blue
+          simp at h
+          exact Color_Enum.distinct.2.2.2.2.1 h.symm
+        exact hcontra.elim
+      · have hptr_blue_old : st.color ptr = blue := by
+          simpa [htptr] using hptr_blue
+        have hentry_old := h_free_list_entry (by simpa [hphase]) ptr hptr_block hptr_blue_old
+        rcases hentry_old with hentry_old | hentry_old
+        · left
+          exact hentry_old
+        · right
+          rcases hentry_old with ⟨pred, hpred_block, hpred_blue, hpred_next⟩
+          by_cases hpred_t : pred = t
+          · subst pred
+            have hnext_ne : ¬st.next t = th.null_ptr := by
+              intro hnext_null
+              have : st.is_block th.null_ptr = true := by
+                have hptr_null : ptr = th.null_ptr := by
+                  rw [← hpred_next, hnext_null]
+                simpa [hptr_null] using hptr_block
+              simpa [h_null_not_block] using this
+            have hnext := h_free_next_wf t ht hblue hnext_ne
+            have hnext_not_t : ¬st.next t = t := by
+              intro hself
+              have hafter := h_free_next_after t ht hblue hnext_ne
+              have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
+                simpa [hself] using hafter
+              have hpos := h_valid_size t ht
+              omega
+            have ht_next : ¬t = st.next t := by
+              intro h
+              exact hnext_not_t h.symm
+            refine ⟨st.next t, ?_, ?_, ?_⟩
+            · exact hnext.1
+            · simpa [ht_next] using hnext.2
+            · simpa [ht_next, hpred_next]
+          · refine ⟨pred, hpred_block, ?_, ?_⟩
+            · simpa [hpred_t] using hpred_blue
+            · have hpred_next_not_t : ¬st.next pred = t := by
+                intro hnext_t
+                exact htptr (by rw [← hpred_next, hnext_t])
+              simpa [hpred_t, hpred_next_not_t] using hpred_next
 
 theorem Allocate_allocated_block_next_unused (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -1209,7 +1629,11 @@ theorem Allocate_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mut
   · intro off p hp_block hp_blue child hchild_block hne_t hne_rem
     by_cases hpt : t = p
     · subst p
-      exact h_blue_no_parent off t ht hblue child (hchild_block hne_rem)
+      have hcontra : False := by
+        have h : white = blue := by
+          simpa [hne_t] using hp_blue
+        exact Color_Enum.distinct.2.2.2.2.1 h.symm
+      exact hcontra.elim
     · by_cases hremp : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = p
       · subst p
         by_cases hfield : st.field (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) off child = true
@@ -1224,7 +1648,23 @@ theorem Allocate_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mut
       · have hp_block_old : st.is_block p = true := hp_block hremp
         have hp_blue_old : st.color p = blue := by
           simpa [hpt, hremp] using hp_blue
-        exact h_blue_no_parent off p hp_block_old hp_blue_old child (hchild_block hne_rem)
+        by_cases hremc : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = child
+        · subst child
+          by_cases hfield : st.field p off (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) = true
+          · have hrem_to :=
+              h_fields_to off p (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) (by
+                intro hs
+                rw [hphase] at hs
+                exact Phase_Enum.distinct.2.2.2.2.2.1 hs) hfield
+            have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) := by
+              rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+              omega
+            have hoverlap :=
+              h_no_overlap t (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) ht hrem_to.1 ht_lt_rem
+            rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hoverlap
+            omega
+          · simpa using hfield
+        · exact h_blue_no_parent off p hp_block_old hp_blue_old child (hchild_block hremc)
   · intro off p hp_block hp_blue child hchild_block hne_t
     by_cases hpt : t = p
     · subst p
