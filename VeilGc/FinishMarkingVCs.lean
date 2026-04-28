@@ -2,7 +2,6 @@ import Veil
 import VeilGc
 
 open VerifiedGc
-@[veil]
 theorem FinishMarking_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -40,7 +39,6 @@ theorem FinishMarking_free_next_unique_predecessor (ρ : Type) (σ : Type) (Muta
   veil_human
   sorry
 
-@[veil]
 theorem FinishMarking_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -78,7 +76,6 @@ theorem FinishMarking_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutat
   veil_human
   sorry
 
-@[veil]
 theorem FinishMarking_all_roots_marked_black_after_mark_phase (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -116,7 +113,6 @@ theorem FinishMarking_all_roots_marked_black_after_mark_phase (ρ : Type) (σ : 
   veil_human
   sorry
 
-@[veil]
 theorem FinishMarking_white_child_implies_all_white_parents (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -154,7 +150,6 @@ theorem FinishMarking_white_child_implies_all_white_parents (ρ : Type) (σ : Ty
   veil_human
   sorry
 
-@[veil]
 theorem FinishMarking_only_black_white_and_blue_in_mark_complete (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)

@@ -3,8 +3,8 @@ import VeilGc
 
 open VerifiedGc
 
+set_option maxHeartbeats 0
 
-@[veil]
 theorem BeginGC_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -39,9 +39,10 @@ theorem BeginGC_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, huniq, _⟩
+  intro _ _ pred1 pred2 target hp1 hc1 hp2 hc2 hn1 hn2 htarget
+  exact huniq pred1 pred2 target hp1 hc1 hp2 hc2 hn1 hn2 htarget
 
-@[veil]
 theorem BeginGC_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -76,4 +77,9 @@ theorem BeginGC_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : T
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hlist, _⟩
+  intro hphase _ _ ptr hp hc
+  exact hlist (by
+    intro hsweep
+    cases Phase_Enum
+    aesop) ptr hp hc

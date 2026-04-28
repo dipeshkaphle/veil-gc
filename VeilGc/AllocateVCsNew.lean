@@ -2,7 +2,6 @@ import Veil
 import VeilGc
 
 open VerifiedGc
-@[veil]
 theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -38,7 +37,6 @@ theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Ty
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -73,7 +71,6 @@ theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mu
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_block_fits_in_heap (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -108,7 +105,6 @@ theorem Allocate_block_fits_in_heap (ρ : Type) (σ : Type) (Mutator : Type) [Mu
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_blocks_do_not_overlap (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -143,7 +139,6 @@ theorem Allocate_blocks_do_not_overlap (ρ : Type) (σ : Type) (Mutator : Type) 
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_block_next_by_size_is_block (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -179,7 +174,6 @@ theorem Allocate_block_next_by_size_is_block (ρ : Type) (σ : Type) (Mutator : 
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_block_has_valid_size (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -214,7 +208,6 @@ theorem Allocate_block_has_valid_size (ρ : Type) (σ : Type) (Mutator : Type) [
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -249,7 +242,6 @@ theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutat
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -284,7 +276,6 @@ theorem Allocate_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -319,7 +310,6 @@ theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) 
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -354,7 +344,6 @@ theorem Allocate_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -390,7 +379,6 @@ theorem Allocate_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : T
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -425,7 +413,6 @@ theorem Allocate_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -460,7 +447,6 @@ theorem Allocate_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mu
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -496,7 +482,6 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_free_next_after_block (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -531,7 +516,6 @@ theorem Allocate_free_next_after_block (ρ : Type) (σ : Type) (Mutator : Type) 
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -567,7 +551,6 @@ theorem Allocate_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator :
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -603,7 +586,6 @@ theorem Allocate_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : 
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_allocated_block_next_unused (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -639,7 +621,6 @@ theorem Allocate_allocated_block_next_unused (ρ : Type) (σ : Type) (Mutator : 
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_allocated_white_before_coloring (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -675,7 +656,6 @@ theorem Allocate_allocated_white_before_coloring (ρ : Type) (σ : Type) (Mutato
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_blue_never_child_outside_sweep (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -711,7 +691,6 @@ theorem Allocate_blue_never_child_outside_sweep (ρ : Type) (σ : Type) (Mutator
   veil_human
   sorry
 
-@[veil]
 theorem Allocate_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]

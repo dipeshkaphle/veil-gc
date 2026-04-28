@@ -3,7 +3,6 @@ import VeilGc
 
 open VerifiedGc
 
-@[veil]
 theorem MarkStep_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -38,7 +37,6 @@ theorem MarkStep_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutat
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -73,7 +71,6 @@ theorem MarkStep_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -108,7 +105,6 @@ theorem MarkStep_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) 
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -143,7 +139,6 @@ theorem MarkStep_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -179,7 +174,6 @@ theorem MarkStep_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : T
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -215,7 +209,6 @@ theorem MarkStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator :
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -251,7 +244,6 @@ theorem MarkStep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : 
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -287,7 +279,6 @@ theorem MarkStep_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type)
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_blue_never_child_outside_sweep (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -323,7 +314,6 @@ theorem MarkStep_blue_never_child_outside_sweep (ρ : Type) (σ : Type) (Mutator
   veil_human
   sorry
 
-@[veil]
 theorem MarkStep_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]

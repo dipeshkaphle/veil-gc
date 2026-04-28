@@ -3,7 +3,6 @@ import VeilGc
 
 open VerifiedGc
 
-@[veil]
 theorem CompleteGC_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -39,7 +38,6 @@ theorem CompleteGC_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator
   veil_human
   sorry
 
-@[veil]
 theorem CompleteGC_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -75,7 +73,6 @@ theorem CompleteGC_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator 
   veil_human
   sorry
 
-@[veil]
 theorem CompleteGC_allocated_white_before_coloring (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)

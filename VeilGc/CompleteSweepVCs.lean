@@ -3,7 +3,6 @@ import VeilGc
 
 open VerifiedGc
 
-@[veil]
 theorem CompleteSweep_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -43,7 +42,6 @@ theorem CompleteSweep_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Typ
   veil_human
   sorry
 
-@[veil]
 theorem CompleteSweep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -83,7 +81,6 @@ theorem CompleteSweep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Muta
   veil_human
   sorry
 
-@[veil]
 theorem CompleteSweep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -123,7 +120,6 @@ theorem CompleteSweep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutat
   veil_human
   sorry
 
-@[veil]
 theorem CompleteSweep_blue_never_child_outside_sweep (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)

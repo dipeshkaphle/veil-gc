@@ -2,7 +2,6 @@ import Veil
 import VeilGc
 
 open VerifiedGc
-@[veil]
 theorem CompleteDarkenRoot_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -42,7 +41,6 @@ theorem CompleteDarkenRoot_free_next_unique_predecessor (ρ : Type) (σ : Type) 
   veil_human
   sorry
 
-@[veil]
 theorem CompleteDarkenRoot_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)

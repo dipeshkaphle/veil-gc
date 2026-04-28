@@ -3,7 +3,6 @@ import VeilGc
 
 open VerifiedGc
 
-@[veil]
 theorem SweepStep_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -39,7 +38,6 @@ theorem SweepStep_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type)
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -75,7 +73,6 @@ theorem SweepStep_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : 
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -110,7 +107,6 @@ theorem SweepStep_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -145,7 +141,6 @@ theorem SweepStep_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [M
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -181,7 +176,6 @@ theorem SweepStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator 
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_swept_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -217,7 +211,6 @@ theorem SweepStep_swept_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mut
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_sweep_addr_points_to_block (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
@@ -253,7 +246,6 @@ theorem SweepStep_sweep_addr_points_to_block (ρ : Type) (σ : Type) (Mutator : 
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
     [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
@@ -288,7 +280,6 @@ theorem SweepStep_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mu
   veil_human
   sorry
 
-@[veil]
 theorem SweepStep_reachables_still_black_after_unreachables_sweeping (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
     [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
