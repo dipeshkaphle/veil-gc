@@ -14,7 +14,7 @@ This file intentionally captures the collector kernel first:
 The abstract graph-reachability specification from the paper is the next layer
 to add on top of this state machine. It is not encoded yet in this first pass.
 -/
-set_option veil.solver "grindAndSMT"
+set_option veil.solver "grind"
 
 veil module VerifiedGc
 
@@ -34,7 +34,7 @@ enum Phase = { idle,
                gc_requested,
                darken_roots, darken_roots_complete,
                mark, mark_complete,
-               sweep, sweep_unreachable_done, reset_colors, sweep_complete }
+               sweep, reset_colors, sweep_complete }
 
 immutable individual heap_start : Ptr
 immutable individual null_ptr : Ptr
@@ -43,6 +43,28 @@ immutable function addrToPtr : Nat → Ptr
 
 
 individual phase : Phase
+
+-- `free_head` is the concrete entry point of the free list used by allocation.
+-- During sweep, `sweep_addr` is the address cursor for the next block to
+-- inspect, and `free_tail` remembers the last free block already rebuilt below
+-- `sweep_addr`, so the next swept free block can be appended after it.
+--
+--   heap_start                                    heap_start + HeapSize
+--      |                                                     |
+--      v                                                     v
+--   [ already swept / rebuilt free-list prefix ][ not swept yet ]
+--                                      ^
+--                                      sweep_addr
+--
+-- If the rebuilt prefix contains free blocks, `free_head` is the first one and
+-- `free_tail` is the last one:
+--
+--   free_head --> ... --> free_tail --> null_ptr
+--
+-- So adding the next swept free block only needs to update `next free_tail`.
+individual sweep_addr : Nat
+individual free_head : Ptr
+individual free_tail : Ptr
 
 -- indicates that a mutator is paused
 relation world_paused : Mutator → Bool
@@ -104,25 +126,13 @@ relation field (parent: Ptr) (offset: Fin (Nat.succ HeapSize)) (child: Ptr) : Bo
 
 #gen_state
 
-
-ghost relation is_free (ptr : Ptr) :=
-    is_block ptr ∧ color ptr = blue
-
-ghost relation is_allocated (ptr : Ptr) :=
-    is_block ptr ∧ color ptr ≠ blue ∧ color ptr ≠ uncolored
-
--- TODO: is this problematic since I use existential?
-ghost relation field_of (parent: Ptr) (child: Ptr) :=
-    is_block parent ∧
-    is_block child ∧
-    (∃ offset, field parent offset child)
-
-
-
 after_init {
   phase := idle
   color O := uncolored
   roots O := false
+  sweep_addr := ptrToAddr heap_start
+  free_head := heap_start
+  free_tail := null_ptr
   next O := null_ptr
   size O := 0
   is_block O := false
@@ -132,6 +142,7 @@ after_init {
   next heap_start := null_ptr
   color heap_start := blue
   is_block heap_start := true
+  world_paused M := false
 }
 
 assumption [heap_size_gt_zero] HeapSize > 0
@@ -150,16 +161,18 @@ procedure setNext (ptr : Ptr) (nxt : Ptr) {
 
 procedure setNextOfPred (target : Ptr) (nxt : Ptr) {
   -- Redirect any free predecessor whose next pointer currently targets `target`.
-  next P := if is_free P ∧ next P = target then nxt else next P
+  next P := if is_block P ∧ color P = blue ∧ next P = target then nxt else next P
 }
 
-action allocate (_m: Mutator) (reqSize : Fin (Nat.succ HeapSize)) {
+action Allocate (_m: Mutator) (reqSize : Fin (Nat.succ HeapSize)) {
   require phase = idle
   require reqSize.val > 0
 
   let ptr : Ptr ← pick
   require is_block ptr
   require color ptr = blue
+  require ptr = free_head ∨
+    ∃ pred, is_block pred ∧ color pred = blue ∧ next pred = ptr
 
   let oldSize := size ptr
   let oldNext := next ptr
@@ -169,6 +182,8 @@ action allocate (_m: Mutator) (reqSize : Fin (Nat.succ HeapSize)) {
   if oldSize > reqSize.val then
     let remainder := addrToPtr (ptrToAddr ptr + reqSize.val)
     setNextOfPred ptr remainder
+    if ptr = free_head then
+      free_head := remainder
     is_block remainder := true
     color remainder := blue
     size remainder := oldSize - reqSize.val
@@ -177,6 +192,8 @@ action allocate (_m: Mutator) (reqSize : Fin (Nat.succ HeapSize)) {
   -- Exact fit: splice this block out of the free list entirely.
   else
     setNextOfPred ptr oldNext
+    if ptr = free_head then
+      free_head := oldNext
 
   color ptr := white
   size ptr := reqSize.val
@@ -187,8 +204,8 @@ action allocate (_m: Mutator) (reqSize : Fin (Nat.succ HeapSize)) {
 
 action Update (_m: Mutator) (parent: Ptr) (offset: Fin (Nat.succ HeapSize)) (child: Ptr) {
   require phase = idle
-  require is_allocated parent
-  require is_allocated child
+  require is_block parent ∧ color parent ≠ blue
+  require is_block child ∧ color child ≠ blue
   require offset.val < size parent
 
   field parent offset C := false
@@ -197,7 +214,7 @@ action Update (_m: Mutator) (parent: Ptr) (offset: Fin (Nat.succ HeapSize)) (chi
 
 action AddRoot (_m : Mutator) (ptr : Ptr) {
   require phase = idle
-  require is_allocated ptr
+  require is_block ptr ∧ color ptr ≠ blue
   require ¬ roots ptr
 
   roots ptr := true
@@ -271,11 +288,13 @@ action MarkStep (_c : Collector) {
   require is_block curr_ptr
   require color curr_ptr = gray -- must have been marked gray (either by DarkenRoot, or by a MarkStep call)
 
-  -- is_allocated makes sure it's not blue or invalid
+  -- The child-side block/color checks make sure we only gray allocated children.
   -- then we just make sure that it's not black either,
   -- if it's black it means all its children have been visited
   -- so we don't want to do anything to it
-  color P := if ( field_of curr_ptr P ) ∧ (is_allocated P) ∧ (color P != black) then gray else color P
+  color P := if (∃ offset, field curr_ptr offset P) ∧
+      is_block P ∧ color P ≠ blue ∧ color P ≠ black
+    then gray else color P
 
   -- mark the current thing as black since we already visited all its children and made them gray
   -- its children will be scanned later
@@ -295,22 +314,47 @@ action FinishMarking (_c : Collector) {
 action BeginSweep (_c: Collector) {
   require phase = mark_complete
 
+  sweep_addr := ptrToAddr heap_start
+  free_head := null_ptr
+  free_tail := null_ptr
   phase := sweep
 }
 
 
-action Sweep (_c : Collector) {
+-- TODO: coalescing
+action SweepStep (_c : Collector) {
   require phase = sweep
 
-  -- if the parent is white(unreachable), clear out its fields
-  field P O C := if color P = white then false else field P O C
+  let curr : Ptr := addrToPtr sweep_addr
+  require ptrToAddr heap_start ≤ sweep_addr
+  require sweep_addr < ptrToAddr heap_start + HeapSize
+  require is_block curr
+  require color curr = black ∨ color curr = white ∨ color curr = blue
 
-  -- everything white is blue now since it was unreachable
-  color P := if color P = white then blue else color P
+  let oldSize := size curr
+
+  if color curr = black then
+    -- Live blocks stay allocated. Their `next` is already null by
+    -- `allocated_block_next_unused`, so sweep does not touch it.
+    sweep_addr := sweep_addr + oldSize
+  else
+    -- Dead allocated blocks become free, and old free blocks are reinserted
+    -- into the rebuilt list. The scan is by increasing address, so appending
+    -- preserves address order.
+    field curr O C := false
+    color curr := blue
+    if free_tail = null_ptr then
+      free_head := curr
+    else
+      setNext free_tail curr
+    free_tail := curr
+    setNext curr null_ptr
+    sweep_addr := sweep_addr + oldSize
 }
 
 action CompleteSweep (_c : Collector) {
   require phase = sweep
+  require sweep_addr = ptrToAddr heap_start + HeapSize
   -- everything is either blue(free), or black(white ones were marked unreachable and recolored to blue)
   -- gray cannot happen since it can only exist during marking phase
   require ∀ ptr, is_block ptr -> color ptr != white
@@ -334,11 +378,9 @@ action CompleteGC (_c: Collector) {
 
   -- unpause everyone's world
   world_paused M := false
+  free_tail := null_ptr
   phase := idle
 }
-
-
---invariant [field_list_maintained] ∀ p o c, field p o c <-> fields_list.contains (Field.mk p o c)
 
 
 invariant [heap_start_is_block]
@@ -371,15 +413,17 @@ invariant [block_has_valid_size]
 invariant [block_has_color]
   ∀ ptr, is_block ptr → color ptr ≠ uncolored
 invariant [roots_are_allocated]
-  ∀ ptr, roots ptr → is_allocated ptr
+  ∀ ptr, roots ptr → is_block ptr ∧ color ptr ≠ blue
 
 -- field invariants
 invariant [fields_from_allocated]
-  ∀ parent off child, field parent off child → is_allocated parent
+  ∀ parent off child, field parent off child →
+    is_block parent ∧ color parent ≠ blue
 invariant [fields_to_allocated]
-  ∀ parent off child, field parent off child → is_allocated child
+  ∀ parent off child, phase ≠ sweep ∧ field parent off child →
+    is_block child ∧ color child ≠ blue
 invariant [free_blocks_have_no_fields]
-  ∀ parent off child, is_free parent → ¬ field parent off child
+  ∀ parent off child, is_block parent ∧ color parent = blue → ¬ field parent off child
 
 invariant [field_unique]
   ∀ parent off child1 child2,
@@ -390,25 +434,82 @@ invariant [field_is_in_bounds]
 -- Free blocks have a next pointer means the next pointer is also
 -- free
 invariant [free_block_next_wellformed]
-  ∀ ptr, is_free ptr ∧ next ptr ≠ null_ptr → is_free (next ptr)
+  ∀ ptr, is_block ptr ∧ color ptr = blue ∧ next ptr ≠ null_ptr →
+    is_block (next ptr) ∧ color (next ptr) = blue
+
+invariant [free_head_is_free_or_null]
+  free_head = null_ptr ∨ is_block free_head ∧ color free_head = blue
+
+-- The free list is address ordered. This rules out self-loops, backward links,
+-- and cycles in the `next` chain.
+invariant [free_next_after_block]
+  ∀ ptr, is_block ptr ∧ color ptr = blue ∧ next ptr ≠ null_ptr →
+    ptrToAddr ptr + size ptr ≤ ptrToAddr (next ptr)
+
+invariant [free_next_unique_predecessor]
+  ∀ pred1 pred2 target,
+    is_block pred1 ∧ color pred1 = blue ∧
+    is_block pred2 ∧ color pred2 = blue ∧
+    next pred1 = target ∧ next pred2 = target ∧
+    target ≠ null_ptr →
+      pred1 = pred2
+
+-- Outside sweep, every free block is either the list head or has a free
+-- predecessor. Together with address-ordered links, this rules out disconnected
+-- free islands without needing a recursive reachability relation here.
+invariant [free_blocks_have_list_entry]
+  phase ≠ sweep →
+    ∀ ptr, is_block ptr ∧ color ptr = blue →
+      ptr = free_head ∨
+        ∃ pred, is_block pred ∧ color pred = blue ∧ next pred = ptr
+
+-- During sweep the list is being rebuilt, so only the swept prefix is expected
+-- to have an entry in the rebuilt list.
+invariant [swept_free_blocks_have_list_entry]
+  phase = sweep →
+    ∀ ptr, is_block ptr ∧ color ptr = blue ∧ ptrToAddr ptr + size ptr ≤ sweep_addr →
+      ptr = free_head ∨
+        ∃ pred, is_block pred ∧ color pred = blue ∧ next pred = ptr
+
+invariant [free_tail_is_free_during_sweep]
+  phase = sweep ∧ free_tail ≠ null_ptr →
+    is_block free_tail ∧ color free_tail = blue
+
+invariant [free_head_tail_empty_together_during_sweep]
+  phase = sweep →
+    (free_head = null_ptr ↔ free_tail = null_ptr)
+
+invariant [free_tail_next_is_null_during_sweep]
+  phase = sweep ∧ free_tail ≠ null_ptr →
+    next free_tail = null_ptr
+
+invariant [free_tail_before_sweep_addr]
+  phase = sweep ∧ free_tail ≠ null_ptr →
+    ptrToAddr free_tail + size free_tail ≤ sweep_addr
 
 -- allocated block has no next ptr
 invariant [allocated_block_next_unused]
-  ∀ ptr, is_allocated ptr → next ptr = null_ptr
+  ∀ ptr, is_block ptr ∧ color ptr ≠ blue →
+    next ptr = null_ptr
+
+invariant [sweep_addr_in_bounds]
+  phase = sweep →
+    ptrToAddr heap_start ≤ sweep_addr ∧
+      sweep_addr ≤ ptrToAddr heap_start + HeapSize
+
+invariant [sweep_addr_points_to_block]
+  phase = sweep ∧ sweep_addr < ptrToAddr heap_start + HeapSize →
+    is_block (addrToPtr sweep_addr)
 
 -- stop-the-world when doing GC(mark and sweep)
 invariant [world_paused_during_gc] ∀ m , (phase != idle ∧ phase != gc_requested ) ->  world_paused m
 
 
--- everything block is either blue or white during idle phase, and every
--- allocated ones are white
-invariant [allocated_white_when_idle]
- ∀ p, phase = idle ∧ is_allocated p → color p = white
-
-
 -- everything block is either blue or white during gc_requested phase as well
 invariant [allocated_white_before_coloring]
- ∀ p, (phase = idle ∨ phase = gc_requested) ∧ is_allocated p → color p = white
+ ∀ p, (phase = idle ∨ phase = gc_requested) ∧
+    is_block p ∧ color p ≠ blue →
+      color p = white
 
 -- when we are at mark phase, every root must've been colored gray(meaning its to be scanned during marking)
 invariant [all_roots_marked_gray_before_mark_phase] ∀ r, roots r ∧ phase = darken_roots_complete -> color r = gray
@@ -443,15 +544,15 @@ invariant [only_black_white_and_blue_in_mark_complete]
     phase = mark_complete ∧ is_block p →
       color p = blue ∨ color p = white ∨ color p = black
 
-invariant [blue_never_child]
+invariant [blue_never_child_outside_sweep]
   ∀ p,
-    is_block p ∧ color p = blue  →
-      ¬ (∃ parent, field_of parent p)
+    phase ≠ sweep ∧ is_block p ∧ color p = blue  →
+      ¬ (∃ parent off, is_block parent ∧ field parent off p)
 
 invariant [blue_never_parent]
   ∀ p,
     is_block p ∧ color p = blue  →
-      ¬ (∃ child, field_of p child)
+      ¬ (∃ child off, is_block child ∧ field p off child)
 
 invariant [roots_black_during_after_unreachables_sweeping]
     ∀ r, roots r ∧ phase = sweep -> color r = black
@@ -462,29 +563,26 @@ invariant [reachables_still_black_after_unreachables_sweeping]
       color c = black
 
 
--- since we turn everything that was marked black(reachable) to white during sweep
--- Think there's a slight problem:
--- Say we have coalescing, then this may not hold exactly.. because we might merge stuff, so roots may not actually be valid.
--- TODO: coalescing
--- A way to state something useful during coalescing would be via a range thingy. In this case,
--- we could state that the r's value is in between a block (exists some p, r >= p ∧ p + p.size > r)
 invariant [all_roots_white_after_sweep] ∀ r , phase = sweep_complete ∧ roots r -> color r = white
 
 -- if a field is white, all it's children are also white
-invariant [all_white_points_to_white_after_sweep] ∀ ptr child , phase = sweep_complete ∧ field_of ptr child ∧ color ptr = white ->  color child = white
+invariant [all_white_points_to_white_after_sweep] ∀ ptr child ,
+          phase = sweep_complete ∧
+            is_block ptr ∧ is_block child ∧ (∃ off, field ptr off child) ∧
+              color ptr = white -> color child = white
 
 #gen_spec
 
 
--- #model_check
---   { Mutator := Fin 1, Collector := Fin 1, Ptr := Fin 8, HeapSize := 4 }
---   { heap_start := (2 : Fin 8),
---     null_ptr := (0 : Fin 8),
---     ptrToAddr := fun p => p.val,
---     addrToPtr := fun n => Fin.ofNat 8 n }
+ --#model_check
+   --{ Mutator := Fin 1, Collector := Fin 1, Ptr := Fin 10, HeapSize := 6 }
+   --{ heap_start := (2 : Fin 10),
+     --null_ptr := (0 : Fin 10),
+     --ptrToAddr := fun p => p.val,
+     --addrToPtr := fun n => Fin.ofNat 10 n }
 
 /- #check RelationalTransitionSystem -/
 
---#check_invariants
+#check_action Allocate
 
 end VerifiedGc
