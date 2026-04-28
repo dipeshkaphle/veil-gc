@@ -37,4 +37,4 @@ theorem BeginSweep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  aesop
+  grind

@@ -82,4 +82,4 @@ theorem BeginGC_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : T
   exact hlist (by
     intro hsweep
     cases Phase_Enum
-    aesop) ptr hp hc
+    grind) ptr hp hc

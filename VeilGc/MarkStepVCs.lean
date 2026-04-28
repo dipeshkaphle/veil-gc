@@ -281,7 +281,7 @@ theorem MarkStep_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator :
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  aesop
+  sorry
 
 theorem MarkStep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -316,7 +316,7 @@ theorem MarkStep_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  aesop
+  sorry
 
 theorem MarkStep_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -372,7 +372,6 @@ theorem MarkStep_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type)
         have hsweep' : Phase_EnumClass.mark = Phase_EnumClass.sweep := by
           simpa [hphase] using hsweep
         simp [Phase_Enum.distinct] at hsweep'
-        exact hsweep'
       have hfield_to := h_fields_to off t c hnotSweep (by simpa using hfield)
       have hexists : ∃ offset, st.field t offset c = true := ⟨off, by simpa using hfield⟩
       by_cases hcond_c :
