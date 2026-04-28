@@ -73,7 +73,9 @@ theorem CompleteGC_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  aesop?
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, huniq, _⟩
+  intros
+  apply huniq
 
 theorem CompleteGC_allocated_white_before_coloring (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
