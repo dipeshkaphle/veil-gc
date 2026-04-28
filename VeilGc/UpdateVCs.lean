@@ -37,7 +37,23 @@ theorem Update_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_de
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, hfield_unique, _⟩
+  intro _ _ _ _ _ _ parent_1 child1 child2 hfield1 hfield2
+  by_cases hparent : parent = parent_1
+  · by_cases hoff : offset = off
+    · by_cases hchild1 : child = child1
+      · by_cases hchild2 : child = child2
+        · rw [← hchild1, ← hchild2]
+        · have hnot := (hfield2 (fun _ _ => hchild2)).1 hparent
+          exact False.elim (hnot hoff)
+      · have hnot := (hfield1 (fun _ _ => hchild1)).1 hparent
+        exact False.elim (hnot hoff)
+    · exact hfield_unique off parent_1 child1 child2
+        ((hfield1 (fun _ hoff' _ => hoff (by simpa [hparent] using hoff'))).2)
+        ((hfield2 (fun _ hoff' _ => hoff (by simpa [hparent] using hoff'))).2)
+  · exact hfield_unique off parent_1 child1 child2
+      ((hfield1 (fun hparent' _ _ => hparent hparent')).2)
+      ((hfield2 (fun hparent' _ _ => hparent hparent')).2)
 
 theorem Update_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -73,8 +89,8 @@ theorem Update_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : T
   by
   veil_human
   rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, huniq, _⟩
-  intros
-  apply huniq
+  intro _ _ _ _ _ _ pred1 pred2 target hpred1 hcolor1 hpred2 hcolor2 hnext1 hnext2 htarget
+  exact huniq pred1 pred2 target hpred1 hcolor1 hpred2 hcolor2 hnext1 hnext2 htarget
 
 theorem Update_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -110,5 +126,5 @@ theorem Update_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Ty
   by
   veil_human
   rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hlist, _⟩
-  intros
-  apply hlist
+  intro hphase _ _ _ _ _ hnot_sweep ptr hblock hblue
+  exact hlist hnot_sweep ptr hblock hblue

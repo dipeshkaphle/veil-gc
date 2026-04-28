@@ -39,9 +39,20 @@ theorem ResetReachable_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mut
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  classical
   rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, huniq, _⟩
-  intros
-  apply huniq
+  intro _ pred1 pred2 target hpred1 hcolor1 hpred2 hcolor2 hnext1 hnext2 htarget
+  have hcolor1_old : st.color pred1 = Color_EnumClass.blue := by
+    by_cases hblack : st.color pred1 = Color_EnumClass.black
+    · simp [hblack] at hcolor1
+      grind [Color_Enum.distinct]
+    · simpa [hblack] using hcolor1
+  have hcolor2_old : st.color pred2 = Color_EnumClass.blue := by
+    by_cases hblack : st.color pred2 = Color_EnumClass.black
+    · simp [hblack] at hcolor2
+      grind [Color_Enum.distinct]
+    · simpa [hblack] using hcolor2
+  exact huniq pred1 pred2 target hpred1 hcolor1_old hpred2 hcolor2_old hnext1 hnext2 htarget
 
 theorem ResetReachable_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -76,9 +87,25 @@ theorem ResetReachable_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Muta
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  classical
   rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hlist, _⟩
-  intros
-  apply hlist
+  intro hreset _ ptr hblock hblue
+  have hnosweep : ¬ st.phase = Phase_EnumClass.sweep := by
+    intro hsweep
+    rw [hreset] at hsweep
+    exact Phase_Enum.distinct.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1 hsweep.symm
+  have hblue_old : st.color ptr = Color_EnumClass.blue := by
+    by_cases hblack : st.color ptr = Color_EnumClass.black
+    · simp [hblack] at hblue
+      grind [Color_Enum.distinct]
+    · simpa [hblack] using hblue
+  rcases hlist hnosweep ptr hblock hblue_old with hhead | ⟨pred, hpred_block, hpred_blue, hnext⟩
+  · exact Or.inl hhead
+  · have hpred_blue_post :
+        (if st.color pred = Color_EnumClass.black then Color_EnumClass.white else st.color pred) =
+          Color_EnumClass.blue := by
+      simp [hpred_blue, Color_Enum.distinct]
+    exact Or.inr ⟨pred, hpred_block, hpred_blue_post, hnext⟩
 
 theorem ResetReachable_all_roots_white_after_sweep (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -113,7 +140,23 @@ theorem ResetReachable_all_roots_white_after_sweep (ρ : Type) (σ : Type) (Muta
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, h_block_color, h_roots_alloc, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h_gray_only, _, h_no_white_reset, _⟩
+  intro hreset r hroot hnot_black
+  have hblock : st.is_block r = true := (h_roots_alloc r hroot).1
+  have hnot_blue : ¬ st.color r = Color_EnumClass.blue := (h_roots_alloc r hroot).2
+  have hnot_uncolored : ¬ st.color r = Color_EnumClass.uncolored := h_block_color r hblock
+  have hnot_gray : ¬ st.color r = Color_EnumClass.gray := by
+    intro hgray
+    have hph := h_gray_only r hgray
+    rw [hreset] at hph
+    grind [Phase_Enum.distinct]
+  have hnot_white : ¬ st.color r = Color_EnumClass.white := h_no_white_reset r hreset
+  rcases Color_EnumClass.complete (st.color r) with hun | hblue | hwhite | hgray | hblack
+  · exact False.elim (hnot_uncolored hun)
+  · exact False.elim (hnot_blue hblue)
+  · exact hwhite
+  · exact False.elim (hnot_gray hgray)
+  · exact False.elim (hnot_black hblack)
 
 theorem ResetReachable_all_white_points_to_white_after_sweep (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -148,4 +191,23 @@ theorem ResetReachable_all_white_points_to_white_after_sweep (ρ : Type) (σ : T
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  rcases hinv with ⟨_, _, _, _, _, _, _, h_block_color, _, _, h_fields_to, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h_gray_only, _, h_no_white_reset, _⟩
+  intro x hreset ptr child hptr_block hchild_block hfield hptr_post_white hchild_not_black
+  have hnot_sweep : ¬ st.phase = Phase_EnumClass.sweep := by
+    intro hsweep
+    rw [hreset] at hsweep
+    grind [Phase_Enum.distinct]
+  have hchild_not_blue : ¬ st.color child = Color_EnumClass.blue := (h_fields_to x ptr child hnot_sweep hfield).2
+  have hchild_not_uncolored : ¬ st.color child = Color_EnumClass.uncolored := h_block_color child hchild_block
+  have hchild_not_gray : ¬ st.color child = Color_EnumClass.gray := by
+    intro hgray
+    have hph := h_gray_only child hgray
+    rw [hreset] at hph
+    grind [Phase_Enum.distinct]
+  have hchild_not_white : ¬ st.color child = Color_EnumClass.white := h_no_white_reset child hreset
+  rcases Color_EnumClass.complete (st.color child) with hun | hblue | hwhite | hgray | hblack
+  · exact False.elim (hchild_not_uncolored hun)
+  · exact False.elim (hchild_not_blue hblue)
+  · exact hwhite
+  · exact False.elim (hchild_not_gray hgray)
+  · exact False.elim (hchild_not_black hblack)

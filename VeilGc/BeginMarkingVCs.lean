@@ -73,9 +73,13 @@ theorem BeginMarking_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutato
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, huniq, _⟩
-  intros
-  apply huniq
+  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hlist, _⟩
+  intro hphase hmark_not_sweep ptr hblock hblue
+  have hnosweep : ¬ st.phase = Phase_EnumClass.sweep := by
+    intro hsweep
+    rw [hphase] at hsweep
+    simp [Phase_Enum.distinct] at hsweep
+  exact hlist hnosweep ptr hblock hblue
 
 theorem BeginMarking_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -110,4 +114,4 @@ theorem BeginMarking_only_black_to_gray_or_black_during_mark (ρ : Type) (σ : T
           Color_inhabited Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  grind
