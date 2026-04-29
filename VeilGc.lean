@@ -273,7 +273,7 @@ action DarkenRoot (_c: Collector){
 action CompleteDarkenRoot (_c: Collector){
   require phase = darken_roots
   require ∀ ptr, roots ptr → color ptr = gray
-  -- adding this as an assumption because it holds the wya we have things. 
+  -- adding this as an assumption because it holds the wya we have things.
   -- Adding invariant for this will cause slowdown but it's provable.
   -- We have: allocated_white_before_coloring , which says:
   --```
@@ -284,7 +284,7 @@ action CompleteDarkenRoot (_c: Collector){
   -- So in gc_requested, everything is white
   -- After that in darken root, we make some stuff gray
   -- So we don't have black colored ptr here at alll.
-  -- NOTE: This can be made an invariant but its simple enough 
+  -- NOTE: This can be made an invariant but its simple enough
   -- that I don't think its worth it to go through the trouble of
   -- rerunning and extracting all the goals.
   require ∀ p, color p ≠ black
@@ -545,13 +545,18 @@ invariant [only_black_to_gray_or_black_during_mark]
     phase = mark ∧ color p = black ∧ field p off c →
       color c = black ∨ color c = gray
 
+-- SAFETY PROPERTY 1
 invariant [all_roots_marked_black_after_mark_phase] ∀ r, roots r ∧ phase = mark_complete -> color r = black
 
+-- SAFETY PROPERTY 2
 -- post marking (in mark_complete) phase, we have only black -> black
 invariant [no_black_to_white_after_mark]
   ∀ p off c,
     phase = mark_complete ∧ color p = black ∧ field p off c →
       color c = black
+
+-- The above two safety properties imply soundness. Everything reachable is
+-- colored black.
 
 -- if a ptr has white color, then all its parents must be colored white as well
 -- Doesn't make sense to say white -> white edge, since the child might be
