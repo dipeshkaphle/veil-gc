@@ -592,7 +592,7 @@ invariant [reachables_still_black_after_unreachables_sweeping]
       color c = black
 
 -- SAFETY PROPERTY 1 (in sweep)
--- Roots are not freed after sweep
+-- Roots are not freed after sweeep
 invariant [all_roots_white_after_sweep] ∀ r , phase = sweep_complete ∧ roots r -> color r = white
 
 -- SAFETY PROPERTY 2 (in sweep)

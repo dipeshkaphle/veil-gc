@@ -528,7 +528,124 @@ theorem Allocate_block_next_by_size_is_block (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hsplit_head]
+      intro p hp
+      by_cases htp : t = p
+      · subst p
+        right
+        simp [hfree_t]
+      · by_cases hrp : th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = p
+        · have htp' : ¬ t = p := htp
+          subst p
+          have ht_not_raw : ¬t = th.addrToPtr (th.ptrToAddr t + ↑reqSize) := by
+            intro h
+            have haddr := congrArg th.ptrToAddr h
+            rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at haddr
+            omega
+          have hold := hinv.2.2.2.2.2.1 t ht
+          rcases hold with hold | hold
+          · left
+            simp [hfree_t, ht_not_raw, has.2.2.2.1]
+            omega
+          · right
+            intro hnew
+            simp [hfree_t, ht_not_raw, has.2.2.2.1]
+            have haddr : th.ptrToAddr t + ↑reqSize + (st.size t - ↑reqSize) =
+                th.ptrToAddr t + st.size t := by
+              omega
+            have hptr : th.addrToPtr (th.ptrToAddr t + ↑reqSize + (st.size t - ↑reqSize)) =
+                th.addrToPtr (th.ptrToAddr t + st.size t) := by
+              rw [haddr]
+            simpa [hptr] using hold
+        · have hp_old : st.is_block p = true := hp hrp
+          have hfree_not_p : ¬st.free_head = p := by
+            simpa [hhead] using htp
+          have hold := hinv.2.2.2.2.2.1 p hp_old
+          rcases hold with hold | hold
+          · left
+            simpa [hfree_not_p, hrp] using hold
+          · right
+            intro _
+            simpa [hfree_not_p, hrp] using hold
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next p hp
+      by_cases htp : t = p
+      · subst p
+        right
+        simp
+      · by_cases hrp : rem = p
+        · subst p
+          have hold := hinv.2.2.2.2.2.1 t ht
+          have htp' : ¬ t = rem := by
+            simpa using htp
+          rcases hold with hold | hold
+          · left
+            simp [rem, htp', has.2.2.2.1]
+            omega
+          · right
+            intro hnew
+            simp [rem, htp', has.2.2.2.1]
+            have haddr : th.ptrToAddr t + ↑reqSize + (st.size t - ↑reqSize) =
+                th.ptrToAddr t + st.size t := by
+              omega
+            have hptr : th.addrToPtr (th.ptrToAddr t + ↑reqSize + (st.size t - ↑reqSize)) =
+                th.addrToPtr (th.ptrToAddr t + st.size t) := by
+              rw [haddr]
+            rwa [hptr]
+        · have hp_old := hp hrp
+          have hold := hinv.2.2.2.2.2.1 p hp_old
+          rcases hold with hold | hold
+          · left
+            simpa [htp, hrp, rem] using hold
+          · right
+            intro _
+            simpa [htp, hrp, rem] using hold
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hnosplit_head]
+      intro p hp
+      by_cases htp : t = p
+      · subst p
+        have hold := hinv.2.2.2.2.2.1 t ht
+        rcases hold with hold | hold
+        · left
+          simp [hfree_t]
+          omega
+        · right
+          simp [hfree_t]
+          have haddr : th.ptrToAddr t + ↑reqSize = th.ptrToAddr t + st.size t := by
+            omega
+          simpa [haddr] using hold
+      · have hfree_not_p : ¬st.free_head = p := by
+          simpa [hhead] using htp
+        have hold := hinv.2.2.2.2.2.1 p hp
+        simpa [hfree_not_p] using hold
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next p hp
+      by_cases htp : t = p
+      · subst p
+        have hold := hinv.2.2.2.2.2.1 t ht
+        rcases hold with hold | hold
+        · left
+          simp
+          omega
+        · right
+          simp
+          have haddr : th.ptrToAddr t + ↑reqSize = th.ptrToAddr t + st.size t := by
+            omega
+          simpa [haddr] using hold
+      · have hold := hinv.2.2.2.2.2.1 p hp
+        simpa [htp] using hold
 
 theorem Allocate_block_has_valid_size (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -655,10 +772,66 @@ theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutat
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  casesm* _ ∧ _
-  expose_names
-  intros
-  sorry
+  classical
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hsplit_head]
+      intro ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        intro h
+        have hw : white = uncolored := by
+          simpa [hfree_t] using h
+        exact Color_Enum.distinct.2.1 hw.symm
+      · by_cases hptr_rem_head : th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = ptr
+        · have hfree_not_ptr : ¬st.free_head = ptr := by
+            simpa [hhead] using hptr_t
+          simp [hfree_not_ptr, hptr_rem_head]
+          exact fun h => Color_Enum.distinct.1 h.symm
+        · have hptr_old : st.is_block ptr = true := hptr hptr_rem_head
+          have hptr_free : ¬st.free_head = ptr := by
+            simpa [hhead] using hptr_t
+          simpa [hptr_free, hptr_rem_head] using hinv.2.2.2.2.2.2.2.1 ptr hptr_old
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        intro h
+        have hw : white = uncolored := by
+          simpa using h
+        exact Color_Enum.distinct.2.1 hw.symm
+      · by_cases hptr_rem : rem = ptr
+        · simp [rem, hptr_t, hptr_rem]
+          exact fun h => Color_Enum.distinct.1 h.symm
+        · have hptr_old : st.is_block ptr = true := hptr hptr_rem
+          simpa [hptr_t, hptr_rem, rem] using hinv.2.2.2.2.2.2.2.1 ptr hptr_old
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hnosplit_head]
+      intro ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        intro h
+        have hw : white = uncolored := by
+          simpa [hfree_t] using h
+        exact Color_Enum.distinct.2.1 hw.symm
+      · have hptr_free : ¬st.free_head = ptr := by
+          simpa [hhead] using hptr_t
+        simpa [hptr_free] using hinv.2.2.2.2.2.2.2.1 ptr hptr
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        intro h
+        exact Color_Enum.distinct.2.1 (by simpa [hhead] using h.symm)
+      · simpa [hptr_t] using hinv.2.2.2.2.2.2.2.1 ptr hptr
 
 
 
@@ -694,7 +867,96 @@ theorem Allocate_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hsplit_head]
+      intro ptr hroot
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        constructor
+        · intro _
+          exact ht
+        · intro h
+          exact Color_Enum.distinct.2.2.2.2.1 (by simpa [hfree_t] using h.symm)
+      · by_cases hptr_rem_head : th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = ptr
+        · subst ptr
+          have hroot_old := hinv.2.2.2.2.2.2.2.2.1 (th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize)) hroot
+          have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr (th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize)) := by
+            rw [has.2.2.2.1 (th.ptrToAddr st.free_head + ↑reqSize)]
+            rw [hfree_t]
+            omega
+          have hoverlap := hinv.2.2.2.2.1 t (th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize)) ht hroot_old.1 ht_lt_rem
+          rw [has.2.2.2.1 (th.ptrToAddr st.free_head + ↑reqSize)] at hoverlap
+          rw [hfree_t] at hoverlap
+          omega
+        · have hroot_old := hinv.2.2.2.2.2.2.2.2.1 ptr hroot
+          have hptr_free : ¬st.free_head = ptr := by
+            simpa [hhead] using hptr_t
+          constructor
+          · intro _
+            exact hroot_old.1
+          · simpa [hptr_free, hptr_rem_head] using hroot_old.2
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hroot
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        constructor
+        · intro _
+          exact ht
+        · intro h
+          exact Color_Enum.distinct.2.2.2.2.1 (by simpa using h.symm)
+      · by_cases hptr_rem : rem = ptr
+        · subst ptr
+          have hroot_old := hinv.2.2.2.2.2.2.2.2.1 rem hroot
+          have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr rem := by
+            dsimp [rem]
+            rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+            omega
+          have hoverlap := hinv.2.2.2.2.1 t rem ht hroot_old.1 ht_lt_rem
+          dsimp [rem] at hoverlap
+          rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hoverlap
+          omega
+        · have hroot_old := hinv.2.2.2.2.2.2.2.2.1 ptr hroot
+          constructor
+          · intro _
+            exact hroot_old.1
+          · simpa [hptr_t, hptr_rem, rem] using hroot_old.2
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hnosplit_head]
+      intro ptr hroot
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        constructor
+        · exact ht
+        · intro h
+          exact Color_Enum.distinct.2.2.2.2.1 (by simpa [hfree_t] using h.symm)
+      · have hroot_old := hinv.2.2.2.2.2.2.2.2.1 ptr hroot
+        have hptr_free : ¬st.free_head = ptr := by
+          simpa [hhead] using hptr_t
+        constructor
+        · exact hroot_old.1
+        · simpa [hptr_free] using hroot_old.2
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hroot
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        constructor
+        · exact ht
+        · intro h
+          exact Color_Enum.distinct.2.2.2.2.1 (by simpa using h.symm)
+      · have hroot_old := hinv.2.2.2.2.2.2.2.2.1 ptr hroot
+        constructor
+        · exact hroot_old.1
+        · simpa [hptr_t] using hroot_old.2
 
 theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -728,7 +990,41 @@ theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht ht_blue hsize_le
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hsplit_head]
+      intro off parent child hne_t hne_rem hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      constructor
+      · intro _
+        exact hfield_old.1
+      · simpa [hne_t, hne_rem] using hfield_old.2
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hne_t hne_rem hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      constructor
+      · intro _
+        exact hfield_old.1
+      · simpa [hne_t, hne_rem] using hfield_old.2
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      intro off parent child hne_t hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      constructor
+      · exact hfield_old.1
+      · simpa [hne_t] using hfield_old.2
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hne_t hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      constructor
+      · exact hfield_old.1
+      · simpa [hne_t] using hfield_old.2
 
 theorem Allocate_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -762,7 +1058,77 @@ theorem Allocate_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht ht_blue hsize_le
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hsplit_head]
+      intro off parent child hnotSweep hne_parent_t hne_parent_rem hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.2.1 off parent child hnotSweep hfield
+      constructor
+      · intro _
+        exact hfield_old.1
+      · by_cases htc : t = child
+        · subst child
+          exact False.elim (hfield_old.2 ht_blue)
+        · by_cases hremc : th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = child
+          · subst child
+            have hrem_block := hfield_old.1
+            have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr (th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize)) := by
+              rw [has.2.2.2.1 (th.ptrToAddr st.free_head + ↑reqSize)]
+              rw [← hhead]
+              omega
+            have hoverlap := hinv.2.2.2.2.1 t (th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize)) ht hrem_block ht_lt_rem
+            rw [has.2.2.2.1 (th.ptrToAddr st.free_head + ↑reqSize)] at hoverlap
+            rw [← hhead] at hoverlap
+            omega
+          · have hfree_child : ¬st.free_head = child := by
+              simpa [hhead] using htc
+            simpa [hfree_child, htc, hremc] using hfield_old.2
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hnotSweep hne_parent_t hne_parent_rem hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.2.1 off parent child hnotSweep hfield
+      constructor
+      · intro _
+        exact hfield_old.1
+      · by_cases htc : t = child
+        · subst child
+          exact False.elim (hfield_old.2 ht_blue)
+        · by_cases hremc : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = child
+          · subst child
+            have hrem_block := hfield_old.1
+            have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) := by
+              rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+              omega
+            have hoverlap := hinv.2.2.2.2.1 t (th.addrToPtr (th.ptrToAddr t + ↑reqSize)) ht hrem_block ht_lt_rem
+            rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hoverlap
+            omega
+          · simpa [htc, hremc] using hfield_old.2
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      intro off parent child hnotSweep hne_parent_t hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.2.1 off parent child hnotSweep hfield
+      constructor
+      · exact hfield_old.1
+      · by_cases htc : t = child
+        · subst child
+          exact False.elim (hfield_old.2 ht_blue)
+        · have hfree_child : ¬st.free_head = child := by
+            simpa [hhead] using htc
+          simpa [hfree_child, htc] using hfield_old.2
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hnotSweep hne_parent_t hfield
+      have hfield_old := hinv.2.2.2.2.2.2.2.2.2.2.1 off parent child hnotSweep hfield
+      constructor
+      · exact hfield_old.1
+      · by_cases htc : t = child
+        · subst child
+          exact False.elim (hfield_old.2 ht_blue)
+        · simpa [htc] using hfield_old.2
 
 theorem Allocate_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -797,7 +1163,34 @@ theorem Allocate_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : T
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht ht_blue hsize_le
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hsplit_head]
+      intro off parent child hparent_block hparent_blue hne_t hne_rem
+      have hparent_blue_old : st.color parent = blue := by
+        simpa [hne_t, hne_rem] using hparent_blue
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.1 off parent child (hparent_block hne_rem) hparent_blue_old
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hparent_block hparent_blue hne_t hne_rem
+      have hparent_blue_old : st.color parent = blue := by
+        simpa [hne_t, hne_rem] using hparent_blue
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.1 off parent child (hparent_block hne_rem) hparent_blue_old
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      intro off parent child hparent_block hparent_blue hne_t
+      have hparent_blue_old : st.color parent = blue := by
+        simpa [hne_t] using hparent_blue
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.1 off parent child hparent_block hparent_blue_old
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hparent_block hparent_blue hne_t
+      have hparent_blue_old : st.color parent = blue := by
+        simpa [hne_t] using hparent_blue
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.1 off parent child hparent_block hparent_blue_old
 
 theorem Allocate_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -831,7 +1224,26 @@ theorem Allocate_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht ht_blue hsize_le
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hsplit_head]
+      intro off parent child1 child2 hne_t₁ hne_rem₁ hfield1 hne_t₂ hne_rem₂ hfield2
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child1 child2 hfield1 hfield2
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child1 child2 hne_t₁ hne_rem₁ hfield1 hne_t₂ hne_rem₂ hfield2
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child1 child2 hfield1 hfield2
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      intro off parent child1 child2 hne_t₁ hfield1 hne_t₂ hfield2
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child1 child2 hfield1 hfield2
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child1 child2 hne_t₁ hfield1 hne_t₂ hfield2
+      exact hinv.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child1 child2 hfield1 hfield2
 
 theorem Allocate_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -865,7 +1277,30 @@ theorem Allocate_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht ht_blue hsize_le
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hsplit_head]
+      intro off parent child hne_t hne_rem hfield
+      have hbounds_old := hinv.2.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      simpa [hne_t, hne_rem] using hbounds_old
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hne_t hne_rem hfield
+      have hbounds_old := hinv.2.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      simpa [hne_t, hne_rem] using hbounds_old
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      intro off parent child hne_t hfield
+      have hbounds_old := hinv.2.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      simpa [hne_t] using hbounds_old
+    · simp [hsplit, hhead]
+      intro off pred hpred_block hpred_blue hpred_next parent child hne_t hfield
+      have hbounds_old := hinv.2.2.2.2.2.2.2.2.2.2.2.2.2.1 off parent child hfield
+      simpa [hne_t] using hbounds_old
 
 theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
