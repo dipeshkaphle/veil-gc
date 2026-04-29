@@ -27,7 +27,7 @@ theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Ty
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -40,7 +40,7 @@ theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Ty
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
@@ -114,7 +114,7 @@ theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mu
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -127,7 +127,7 @@ theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mu
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   have hnull_not_block : st.is_block th.null_ptr = false := hinv.2.2.1
   by_cases hsplit : ↑reqSize < st.size t
@@ -188,7 +188,7 @@ theorem Allocate_block_fits_in_heap (ρ : Type) (σ : Type) (Mutator : Type) [Mu
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -200,7 +200,7 @@ theorem Allocate_block_fits_in_heap (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   have ht_fits := hinv.2.2.2.1 t ht
   by_cases hsplit : ↑reqSize < st.size t
@@ -283,7 +283,7 @@ theorem Allocate_blocks_do_not_overlap (ρ : Type) (σ : Type) (Mutator : Type) 
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -296,7 +296,7 @@ theorem Allocate_blocks_do_not_overlap (ρ : Type) (σ : Type) (Mutator : Type) 
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   have hrem_addr : th.ptrToAddr rem = th.ptrToAddr t + ↑reqSize := by
     dsimp [rem]
@@ -516,7 +516,7 @@ theorem Allocate_block_next_by_size_is_block (ρ : Type) (σ : Type) (Mutator : 
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -529,7 +529,7 @@ theorem Allocate_block_next_by_size_is_block (ρ : Type) (σ : Type) (Mutator : 
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
@@ -667,7 +667,7 @@ theorem Allocate_block_has_valid_size (ρ : Type) (σ : Type) (Mutator : Type) [
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -680,7 +680,7 @@ theorem Allocate_block_has_valid_size (ρ : Type) (σ : Type) (Mutator : Type) [
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
@@ -760,7 +760,7 @@ theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutat
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -773,7 +773,7 @@ theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutat
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
@@ -855,7 +855,7 @@ theorem Allocate_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -868,7 +868,7 @@ theorem Allocate_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
@@ -978,7 +978,7 @@ theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) 
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -991,7 +991,7 @@ theorem Allocate_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type) 
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
     · have hsplit_head : ↑reqSize < st.size st.free_head := by
@@ -1046,7 +1046,7 @@ theorem Allocate_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -1059,7 +1059,7 @@ theorem Allocate_fields_to_allocated (ρ : Type) (σ : Type) (Mutator : Type) [M
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
     · have hsplit_head : ↑reqSize < st.size st.free_head := by
@@ -1151,7 +1151,7 @@ theorem Allocate_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : T
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -1163,7 +1163,7 @@ theorem Allocate_free_blocks_have_no_fields (ρ : Type) (σ : Type) (Mutator : T
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
     · have hsplit_head : ↑reqSize < st.size st.free_head := by
@@ -1212,7 +1212,7 @@ theorem Allocate_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -1224,7 +1224,7 @@ theorem Allocate_field_unique (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
     · have hsplit_head : ↑reqSize < st.size st.free_head := by
@@ -1265,7 +1265,7 @@ theorem Allocate_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mu
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -1277,7 +1277,7 @@ theorem Allocate_field_is_in_bounds (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   by_cases hsplit : ↑reqSize < st.size t
   · by_cases hhead : t = st.free_head
     · have hsplit_head : ↑reqSize < st.size st.free_head := by
@@ -1323,7 +1323,7 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
       Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
         (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
+          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub (by classical exact fun _ _ => inferInstance) _m reqSize)
         (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
           Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
           Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
@@ -1336,7 +1336,7 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
   by
   veil_human
   classical
-  intro hphase hreq t ht ht_blue hsize_le
+  intro hphase hreq t ht ht_blue hhead_no_pred hsize_le
   rcases hinv with ⟨h_heap_start, h_block_heap, h_null_not_block, h_fits, h_no_overlap, h_next_by_size,
     h_valid_size, h_block_color, h_roots_alloc, h_fields_from, h_fields_to, h_free_no_fields,
     h_field_unique, h_field_bounds, h_free_next_wf, h_free_head_ok, h_free_next_after,
@@ -1397,31 +1397,20 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
             have hfree_not_ptr : ¬st.free_head = ptr := by
               simpa [hhead] using hptr_t
             simpa [hfree_not_ptr, hptr_rem_head] using hnext_old.1
-          · have hnext_not_t : ¬t = st.next ptr := by
+          · have hno_pred : ∀ pred, st.is_block pred = true → st.color pred = blue → ¬st.next pred = t := by
+              rcases hhead_no_pred with hnot_head | hno_pred
+              · exact False.elim (hnot_head hhead)
+              · exact hno_pred
+            have hnext_not_t : ¬t = st.next ptr := by
               intro hnext_t
-              have hafter := h_free_next_after ptr hptr_old hptr_blue_old hnext_ne
-              have ht_before : th.ptrToAddr ptr + st.size ptr ≤ th.ptrToAddr t := by
-                simpa [hnext_t] using hafter.1
-              by_cases hptr_before_t : th.ptrToAddr ptr < th.ptrToAddr t
-              · have htptr := h_no_overlap ptr t hptr_old ht hptr_before_t
-                omega
-              · have hptr_addr_ne : th.ptrToAddr ptr ≠ th.ptrToAddr t := by
-                  intro haddr
-                  have hptr_eq : ptr = t := by
-                    have hc := congrArg th.addrToPtr haddr
-                    simpa [has.2.1 ptr, has.2.1 t] using hc
-                  exact hptr_t hptr_eq.symm
-                have ht_before_ptr : th.ptrToAddr t < th.ptrToAddr ptr := by
-                  omega
-                have htptr := h_no_overlap t ptr ht hptr_old ht_before_ptr
-                omega
+              exact hno_pred ptr hptr_old hptr_blue_old hnext_t.symm
             by_cases hnext_rem_head : th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = st.next ptr
             · have hnext_rem : rem = st.next ptr := by
                 dsimp [rem]
                 simpa [hhead] using hnext_rem_head
-                have hrem_block : st.is_block rem = true := by
-                  rw [hnext_rem]
-                  exact hnext_old.1
+              have hrem_block : st.is_block rem = true := by
+                rw [hnext_rem]
+                exact hnext_old.1
               have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr rem := by
                 dsimp [rem]
                 rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
@@ -1430,9 +1419,11 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
               dsimp [rem] at hoverlap
               rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hoverlap
               omega
-              · have hfree_not_next : ¬st.free_head = st.next ptr := by
-                  simpa [hhead] using hnext_not_t
-                simpa [hfree_not_next, hnext_rem_head] using hnext_old.2
+            · have hfree_not_next : ¬st.free_head = st.next ptr := by
+                simpa [hhead] using hnext_not_t
+              have hfree_not_ptr : ¬st.free_head = ptr := by
+                simpa [hhead] using hptr_t
+              simpa [hfree_not_ptr, hptr_rem_head, hfree_not_next, hnext_rem_head] using hnext_old.2
     · simp [hsplit, hhead]
       intro pred hpred_block hpred_blue hpred_next ptr hptr_block hptr_blue hptr_next_ne
       by_cases hptr_t : t = ptr
@@ -1451,50 +1442,59 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
             simpa [rem, ht_ne_rem] using hnext_old.1
           · by_cases hnext_t : t = st.next t
             · have hafter := h_free_next_after t ht ht_blue hnext_ne
-                have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
-                  rw [← hnext_t] at hafter
-                  exact hafter.1
+              have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
+                rw [← hnext_t] at hafter
+                exact hafter.1
               have hpos := h_valid_size t ht
               omega
             · by_cases hnext_rem : rem = st.next t
               · simpa [rem, ht_ne_rem, hnext_t, hnext_rem]
               · simpa [rem, ht_ne_rem, hnext_t, hnext_rem] using hnext_old.2
-          · by_cases hpred : st.is_block ptr = true ∧ st.color ptr = blue ∧ st.next ptr = t
-            · intro hnew_next_ne
-              constructor
-            · intro hnext_null
-              have ht_null : t = th.null_ptr := by
-                simpa [hptr_t, hptr_rem, hpred] using hnext_null
+        · by_cases hpred : st.is_block ptr = true ∧ st.color ptr = blue ∧ st.next ptr = t
+          · intro hnew_next_ne
+            have ht_nonnull : ¬t = th.null_ptr := by
+              intro ht_null
               have hnull_block : st.is_block th.null_ptr = true := by
                 simpa [ht_null] using ht
               simpa [h_null_not_block] using hnull_block
-            · simp [rem, ht_ne_rem, hptr_t, hptr_rem, hpred]
-            · have hptr_old : st.is_block ptr = true := hptr_block hptr_rem
-              have hptr_blue_old : st.color ptr = blue := by
-                simpa [hptr_t, hptr_rem] using hptr_blue
-              intro hnew_next_ne
-              have hnext_ne : ¬st.next ptr = th.null_ptr := by
-                simpa [hptr_t, hptr_rem, hpred] using hnew_next_ne
-              have hnext_old := h_free_next_wf ptr hptr_old hptr_blue_old hnext_ne
-              constructor
-              · intro _
-                simpa [hptr_t, hptr_rem, hpred] using hnext_old.1
-              · have hnext_not_t : ¬t = st.next ptr := by
-                  intro hnext_t
-                  exact hpred ⟨hptr_old, hptr_blue_old, hnext_t.symm⟩
-                by_cases hnext_rem : rem = st.next ptr
-                · have hrem_block : st.is_block rem = true := by
-                    rw [hnext_rem]
-                    exact hnext_old.1
-                  have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr rem := by
-                    dsimp [rem]
-                    rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
-                    omega
-                  have hoverlap := h_no_overlap t rem ht hrem_block ht_lt_rem
-                  dsimp [rem] at hoverlap
-                  rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hoverlap
+            have hpred_eq : pred = ptr :=
+              h_free_next_unique pred ptr t hpred_block hpred_blue hpred.1 hpred.2.1 hpred_next hpred.2.2 ht_nonnull
+            constructor
+            · intro hnext_null
+              exact False.elim (hnext_null (by simp [rem, hptr_t, hptr_rem, hpred_eq]))
+            · simp [rem, ht_ne_rem, hptr_t, hptr_rem, hpred_eq]
+          · have hptr_old : st.is_block ptr = true := hptr_block hptr_rem
+            have hraw_ne_ptr : ¬th.addrToPtr (th.ptrToAddr t + ↑reqSize) = ptr := by
+              simpa [rem] using hptr_rem
+            have hptr_blue_old : st.color ptr = blue := by
+              simpa [hptr_t, hraw_ne_ptr] using hptr_blue
+            have hpred_ne : ¬pred = ptr := by
+              intro hpred_eq
+              exact hpred ⟨by simpa [hpred_eq] using hpred_block,
+                by simpa [hpred_eq] using hpred_blue, by simpa [hpred_eq] using hpred_next⟩
+            intro hnew_next_ne
+            have hnext_ne : ¬st.next ptr = th.null_ptr := by
+              simpa [hptr_t, hraw_ne_ptr, hpred_ne] using hnew_next_ne
+            have hnext_old := h_free_next_wf ptr hptr_old hptr_blue_old hnext_ne
+            constructor
+            · intro _
+              simpa [hptr_t, hraw_ne_ptr, hpred_ne] using hnext_old.1
+            · have hnext_not_t : ¬t = st.next ptr := by
+                intro hnext_t
+                exact hpred ⟨hptr_old, hptr_blue_old, hnext_t.symm⟩
+              by_cases hnext_rem : rem = st.next ptr
+              · have hrem_block : st.is_block rem = true := by
+                  rw [hnext_rem]
+                  exact hnext_old.1
+                have ht_lt_rem : th.ptrToAddr t < th.ptrToAddr rem := by
+                  dsimp [rem]
+                  rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
                   omega
-                · simpa [rem, hptr_t, hptr_rem, hpred, hnext_not_t, hnext_rem] using hnext_old.2
+                have hoverlap := h_no_overlap t rem ht hrem_block ht_lt_rem
+                dsimp [rem] at hoverlap
+                rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hoverlap
+                omega
+              · simpa [rem, hptr_t, hraw_ne_ptr, hpred_ne, hnext_not_t, hnext_rem] using hnext_old.2
   · by_cases hhead : t = st.free_head
     · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
         simpa [hhead] using hsplit
@@ -1511,31 +1511,20 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
           have hfree_not_ptr : ¬st.free_head = ptr := by
             simpa [hhead] using hptr_t
           simpa [hfree_not_ptr] using hptr_blue
-          intro hnew_next_ne
-          have hnext_ne : ¬st.next ptr = th.null_ptr := by
-            simpa [hptr_t] using hnew_next_ne
+        intro hnew_next_ne
+        have hnext_ne : ¬st.next ptr = th.null_ptr := by
+          simpa [hptr_t] using hnew_next_ne
         have hnext_old := h_free_next_wf ptr hptr_old hptr_blue_old hnext_ne
         constructor
-        · exact hnext_old.1
+        · simpa [hfree_t, hptr_t] using hnext_old.1
         · have hnext_not_t : ¬t = st.next ptr := by
             intro hnext_t
-            have ht_next : st.next ptr = t := hnext_t.symm
-            have hafter := h_free_next_after ptr hptr_old hptr_blue_old hnext_ne
-            have hptr_before_t : th.ptrToAddr ptr + st.size ptr ≤ th.ptrToAddr t := by
-              simpa [ht_next] using hafter.1
-            by_cases hlt : th.ptrToAddr ptr < th.ptrToAddr t
-            · have hoverlap := h_no_overlap ptr t hptr_old ht hlt
-              omega
-            · have haddr_ne : th.ptrToAddr ptr ≠ th.ptrToAddr t := by
-                intro haddr
-                have hc := congrArg th.addrToPtr haddr
-                have hptr_eq_t : ptr = t := by
-                  simpa [has.2.1 ptr, has.2.1 t] using hc
-                exact hptr_t hptr_eq_t.symm
-              have ht_lt_ptr : th.ptrToAddr t < th.ptrToAddr ptr := by omega
-              have hoverlap := h_no_overlap t ptr ht hptr_old ht_lt_ptr
-              omega
-          simpa [hptr_t, hnext_not_t] using hnext_old.2
+            have hno_pred : ∀ pred, st.is_block pred = true → st.color pred = blue → ¬st.next pred = t := by
+              rcases hhead_no_pred with hnot_head | hno_pred
+              · exact False.elim (hnot_head hhead)
+              · exact hno_pred
+            exact hno_pred ptr hptr_old hptr_blue_old hnext_t.symm
+          simpa [hfree_t, hptr_t, hnext_not_t] using hnext_old.2
     · simp [hsplit, hhead]
       intro pred hpred_block hpred_blue hpred_next ptr hptr_block hptr_blue hptr_next_ne
       by_cases hptr_t : t = ptr
@@ -1545,340 +1534,40 @@ theorem Allocate_free_block_next_wellformed (ρ : Type) (σ : Type) (Mutator : T
         exact False.elim (Color_Enum.distinct.2.2.2.2.1 hwhite_blue.symm)
       · by_cases hpred : st.is_block ptr = true ∧ st.color ptr = blue ∧ st.next ptr = t
         · intro hnew_next_ne
+          have ht_nonnull : ¬t = th.null_ptr := by
+            intro ht_null
+            have hnull_block : st.is_block th.null_ptr = true := by
+              simpa [ht_null] using ht
+            simpa [h_null_not_block] using hnull_block
+          have hpred_eq : pred = ptr :=
+            h_free_next_unique pred ptr t hpred_block hpred_blue hpred.1 hpred.2.1 hpred_next hpred.2.2 ht_nonnull
           have hnext_ne : ¬st.next t = th.null_ptr := by
-            simpa [hptr_t, hpred] using hnew_next_ne
+            simpa [hptr_t, hpred_eq] using hnew_next_ne
           have hnext_old := h_free_next_wf t ht ht_blue hnext_ne
           constructor
-          · simpa [hptr_t, hpred] using hnext_old.1
+          · simpa [hptr_t, hpred_eq] using hnext_old.1
           · have hnext_not_t : ¬t = st.next t := by
               intro hnext_t
               have hafter := h_free_next_after t ht ht_blue hnext_ne
-                have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
-                  rw [← hnext_t] at hafter
-                  exact hafter.1
+              have hafter' : th.ptrToAddr t + st.size t ≤ th.ptrToAddr t := by
+                rw [← hnext_t] at hafter
+                exact hafter.1
               have hpos := h_valid_size t ht
               omega
-            simpa [hptr_t, hpred, hnext_not_t] using hnext_old.2
+            simpa [hptr_t, hpred_eq, hnext_not_t] using hnext_old.2
         · have hptr_blue_old : st.color ptr = blue := by
             simpa [hptr_t] using hptr_blue
+          have hpred_ne : ¬pred = ptr := by
+            intro hpred_eq
+            exact hpred ⟨by simpa [hpred_eq] using hpred_block,
+              by simpa [hpred_eq] using hpred_blue, by simpa [hpred_eq] using hpred_next⟩
           intro hnew_next_ne
           have hnext_ne : ¬st.next ptr = th.null_ptr := by
-            simpa [hptr_t, hpred] using hnew_next_ne
+            simpa [hptr_t, hpred_ne] using hnew_next_ne
           have hnext_old := h_free_next_wf ptr hptr_block hptr_blue_old hnext_ne
           constructor
-          · simpa [hptr_t, hpred] using hnext_old.1
+          · simpa [hptr_t, hpred_ne] using hnext_old.1
           · have hnext_not_t : ¬t = st.next ptr := by
               intro hnext_t
               exact hpred ⟨hptr_block, hptr_blue_old, hnext_t.symm⟩
-            simpa [hptr_t, hpred, hnext_not_t] using hnext_old.2
-
-theorem Allocate_free_next_after_block (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
-    [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
-    [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
-    [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat) [heapSizeNonzero : NeZero HeapSize] (Color : Type)
-    [Color_dec_eq : DecidableEq.{1} Color] [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color]
-    (Phase : Type) [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase]
-    [Phase_Enum : @Phase_EnumClass Phase] (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@free_next_after_block ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq
-          Collector_inhabited Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited
-          Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Type)
-    [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
-    [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
-    [Ptr_dec_eq : DecidableEq.{1} Ptr] [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat)
-    [heapSizeNonzero : NeZero HeapSize] (Color : Type) [Color_dec_eq : DecidableEq.{1} Color]
-    [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color] (Phase : Type)
-    [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase] [Phase_Enum : @Phase_EnumClass Phase]
-    (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@free_next_unique_predecessor ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq
-          Collector_inhabited Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited
-          Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
-    [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
-    [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
-    [Ptr_dec_eq : DecidableEq.{1} Ptr] [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat)
-    [heapSizeNonzero : NeZero HeapSize] (Color : Type) [Color_dec_eq : DecidableEq.{1} Color]
-    [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color] (Phase : Type)
-    [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase] [Phase_Enum : @Phase_EnumClass Phase]
-    (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@free_blocks_have_list_entry ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq
-          Collector_inhabited Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited
-          Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_allocated_block_next_unused (ρ : Type) (σ : Type) (Mutator : Type)
-    [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
-    [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
-    [Ptr_dec_eq : DecidableEq.{1} Ptr] [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat)
-    [heapSizeNonzero : NeZero HeapSize] (Color : Type) [Color_dec_eq : DecidableEq.{1} Color]
-    [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color] (Phase : Type)
-    [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase] [Phase_Enum : @Phase_EnumClass Phase]
-    (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@allocated_block_next_unused ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq
-          Collector_inhabited Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited
-          Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_allocated_white_before_coloring (ρ : Type) (σ : Type) (Mutator : Type)
-    [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
-    [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
-    [Ptr_dec_eq : DecidableEq.{1} Ptr] [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat)
-    [heapSizeNonzero : NeZero HeapSize] (Color : Type) [Color_dec_eq : DecidableEq.{1} Color]
-    [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color] (Phase : Type)
-    [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase] [Phase_Enum : @Phase_EnumClass Phase]
-    (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@allocated_white_before_coloring ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq
-          Collector_inhabited Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited
-          Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_blue_never_child_outside_sweep (ρ : Type) (σ : Type) (Mutator : Type)
-    [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
-    [Collector_dec_eq : DecidableEq.{1} Collector] [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type)
-    [Ptr_dec_eq : DecidableEq.{1} Ptr] [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat)
-    [heapSizeNonzero : NeZero HeapSize] (Color : Type) [Color_dec_eq : DecidableEq.{1} Color]
-    [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color] (Phase : Type)
-    [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase] [Phase_Enum : @Phase_EnumClass Phase]
-    (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@blue_never_child_outside_sweep ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq
-          Collector_inhabited Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited
-          Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_blue_never_parent (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
-    [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
-    [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
-    [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat) [heapSizeNonzero : NeZero HeapSize] (Color : Type)
-    [Color_dec_eq : DecidableEq.{1} Color] [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color]
-    (Phase : Type) [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase]
-    [Phase_Enum : @Phase_EnumClass Phase] (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@blue_never_parent ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited
-          Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_color_implies_block (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
-    [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
-    [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
-    [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat) [heapSizeNonzero : NeZero HeapSize] (Color : Type)
-    [Color_dec_eq : DecidableEq.{1} Color] [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color]
-    (Phase : Type) [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase]
-    [Phase_Enum : @Phase_EnumClass Phase] (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@color_implies_block ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq
-          Collector_inhabited Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited
-          Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
-
-theorem Allocate_gray_only_in_mark (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
-    [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
-    [Collector_inhabited : Inhabited.{1} Collector] (Ptr : Type) [Ptr_dec_eq : DecidableEq.{1} Ptr]
-    [Ptr_inhabited : Inhabited.{1} Ptr] (HeapSize : Nat) [heapSizeNonzero : NeZero HeapSize] (Color : Type)
-    [Color_dec_eq : DecidableEq.{1} Color] [Color_inhabited : Inhabited.{1} Color] [Color_Enum : @Color_EnumClass Color]
-    (Phase : Type) [Phase_dec_eq : DecidableEq.{1} Phase] [Phase_inhabited : Inhabited.{1} Phase]
-    [Phase_Enum : @Phase_EnumClass Phase] (χ : State.Label → Type)
-    [χ_rep :
-      ∀ __veil_f,
-        Veil.FieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f)]
-    [χ_rep_lawful :
-      ∀ __veil_f,
-        Veil.LawfulFieldRepresentation (State.Label.toDomain Mutator Collector Ptr HeapSize Color Phase __veil_f)
-          (State.Label.toCodomain Mutator Collector Ptr HeapSize Color Phase __veil_f) (χ __veil_f) (χ_rep __veil_f)]
-    [σ_sub : IsSubStateOf (@State χ) σ] [ρ_sub : IsSubReaderOf (@Theory Mutator Collector Ptr HeapSize Color Phase) ρ] :
-    ∀ (_m : Mutator) (reqSize : Fin (Nat.succ HeapSize)),
-      Veil.VeilM.meetsSpecificationIfSuccessfulAssuming
-        (@Allocate.ext ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub _m reqSize)
-        (@Assumptions ρ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum ρ_sub)
-        (@Invariants ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited Ptr
-          Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub)
-        (@gray_only_in_mark ρ σ Mutator Mutator_dec_eq Mutator_inhabited Collector Collector_dec_eq Collector_inhabited
-          Ptr Ptr_dec_eq Ptr_inhabited HeapSize heapSizeNonzero Color Color_dec_eq Color_inhabited Color_Enum Phase
-          Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
-  by
-  veil_human
-  sorry
+            simpa [hptr_t, hpred_ne, hnext_not_t] using hnext_old.2

@@ -168,6 +168,7 @@ action Allocate (_m: Mutator) (reqSize : Fin (Nat.succ HeapSize)) {
   let ptr : Ptr ← pick
   require is_block ptr
   require color ptr = blue
+  require ptr ≠ free_head ∨ ∀ pred, ¬ (is_block pred ∧ color pred = blue ∧ next pred = ptr)
 
   let oldSize := size ptr
   let oldNext := next ptr
