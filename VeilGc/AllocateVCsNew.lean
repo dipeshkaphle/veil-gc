@@ -2,6 +2,7 @@ import Veil
 import VeilGc
 
 open VerifiedGc
+open VerifiedGc.Color_EnumClass
 
 set_option maxHeartbeats 0
 theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Type)
@@ -37,6 +38,7 @@ theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Ty
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  classical
   intro hphase hreq t ht ht_blue hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   by_cases hsplit : ↑reqSize < st.size t
@@ -123,6 +125,7 @@ theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  classical
   intro hphase hreq t ht ht_blue hsize_le
   let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
   have hnull_not_block : st.is_block th.null_ptr = false := hinv.2.2.1
@@ -144,6 +147,7 @@ theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mu
     by_cases hhead : t = st.free_head
     · have hsplit_head : ↑reqSize < st.size st.free_head := by
         simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
       simp [hhead, hsplit_head]
       constructor
       · intro hrem_null_head
@@ -290,7 +294,205 @@ theorem Allocate_blocks_do_not_overlap (ρ : Type) (σ : Type) (Mutator : Type) 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  have hrem_addr : th.ptrToAddr rem = th.ptrToAddr t + ↑reqSize := by
+    dsimp [rem]
+    rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+  have ptr_addr_inj : ∀ {a b : Ptr}, th.ptrToAddr a = th.ptrToAddr b → a = b := by
+    intro a b haddr
+    have h := congrArg th.addrToPtr haddr
+    simpa [has.2.1 a, has.2.1 b] using h
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      have hrem_addr_head : th.ptrToAddr rem = th.ptrToAddr st.free_head + ↑reqSize := by
+        simpa [hhead] using hrem_addr
+      simp [hhead, hsplit_head]
+      intro p q hp hq hpq
+      by_cases hp_t : t = p
+      · subst p
+        by_cases hq_rem : rem = q
+        · subst q
+          simp [rem, hrem_addr_head, hfree_t]
+        · have hq_old : st.is_block q = true := hq (by
+            intro hq_rem_head
+            exact hq_rem (by
+              dsimp [rem]
+              simpa [hhead] using hq_rem_head))
+          have hold := hinv.2.2.2.2.1 t q ht hq_old hpq
+          simp [hfree_t]
+          omega
+      · by_cases hp_rem : rem = p
+        · subst p
+          by_cases hq_rem : rem = q
+          · subst q
+            rw [hrem_addr] at hpq
+            omega
+          · have hq_old : st.is_block q = true := hq (by
+              intro hq_rem_head
+              exact hq_rem (by
+                dsimp [rem]
+                simpa [hhead] using hq_rem_head))
+            have ht_lt_q : th.ptrToAddr t < th.ptrToAddr q := by
+              rw [hrem_addr] at hpq
+              omega
+            have hold := hinv.2.2.2.2.1 t q ht hq_old ht_lt_q
+            have ht_not_raw : ¬t = th.addrToPtr (th.ptrToAddr t + ↑reqSize) := by
+              simpa [rem] using hp_t
+            have hraw_rem : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = rem := by
+              dsimp [rem]
+            have hfree_not_rem : ¬st.free_head = rem := by
+              simpa [hhead] using hp_t
+            have hraw_head_rem :
+                th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = rem := by
+              dsimp [rem]
+              simpa [hhead]
+            have hrem_size :
+                (if st.free_head = rem then ↑reqSize
+                 else if th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = rem then
+                   st.size st.free_head - ↑reqSize
+                 else st.size rem) = st.size st.free_head - ↑reqSize := by
+              simp [hfree_not_rem, hraw_head_rem]
+            rw [hrem_size]
+            rw [hrem_addr_head]
+            rw [hhead] at hold
+            omega
+        · have hp_old : st.is_block p = true := hp (by
+            intro hp_rem_head
+            exact hp_rem (by
+              dsimp [rem]
+              simpa [hhead] using hp_rem_head))
+          by_cases hq_rem : rem = q
+          · subst q
+            have hp_ne_t : ¬p = t := by
+              intro h
+              exact hp_t h.symm
+            have hp_not_raw : ¬th.addrToPtr (th.ptrToAddr t + ↑reqSize) = p := by
+              simpa [rem] using hp_rem
+            have hp_free : ¬st.free_head = p := by
+              simpa [hhead] using hp_t
+            have hp_not_raw_head : ¬th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = p := by
+              simpa [hhead] using hp_not_raw
+            simp only [hp_free, hp_not_raw_head, if_false]
+            rw [hrem_addr_head] at hpq ⊢
+            by_cases hp_before_t : th.ptrToAddr p < th.ptrToAddr t
+            · have hold := hinv.2.2.2.2.1 p t hp_old ht hp_before_t
+              omega
+            · have hp_addr_ne : th.ptrToAddr p ≠ th.ptrToAddr t := by
+                intro haddr
+                exact hp_ne_t (ptr_addr_inj haddr)
+              have ht_before_p : th.ptrToAddr t < th.ptrToAddr p := by
+                omega
+              have hold := hinv.2.2.2.2.1 t p ht hp_old ht_before_p
+              omega
+          · have hq_old : st.is_block q = true := hq (by
+              intro hq_rem_head
+              exact hq_rem (by
+                dsimp [rem]
+                simpa [hhead] using hq_rem_head))
+            have hp_ne_t : ¬p = t := by
+              intro h
+              exact hp_t h.symm
+            have hp_not_raw : ¬th.addrToPtr (th.ptrToAddr t + ↑reqSize) = p := by
+              simpa [rem] using hp_rem
+            have hp_free : ¬st.free_head = p := by
+              simpa [hhead] using hp_t
+            have hp_not_raw_head : ¬th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = p := by
+              simpa [hhead] using hp_not_raw
+            simpa only [hp_free, hp_not_raw_head, if_false] using hinv.2.2.2.2.1 p q hp_old hq_old hpq
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next p q hp hq hpq
+      by_cases hp_t : t = p
+      · subst p
+        by_cases hq_rem : rem = q
+        · subst q
+          simp [rem, hrem_addr]
+        · have hq_old : st.is_block q = true := hq hq_rem
+          have hold := hinv.2.2.2.2.1 t q ht hq_old hpq
+          simp
+          omega
+      · by_cases hp_rem : rem = p
+        · subst p
+          by_cases hq_rem : rem = q
+          · subst q
+            rw [hrem_addr] at hpq
+            omega
+          · have hq_old : st.is_block q = true := hq hq_rem
+            have ht_lt_q : th.ptrToAddr t < th.ptrToAddr q := by
+              rw [hrem_addr] at hpq
+              omega
+            have hold := hinv.2.2.2.2.1 t q ht hq_old ht_lt_q
+            have ht_not_raw : ¬t = th.addrToPtr (th.ptrToAddr t + ↑reqSize) := by
+              simpa [rem] using hp_t
+            have hraw_rem : th.addrToPtr (th.ptrToAddr t + ↑reqSize) = rem := by
+              dsimp [rem]
+            have hrem_size :
+                (if t = rem then ↑reqSize
+                 else if th.addrToPtr (th.ptrToAddr t + ↑reqSize) = rem then st.size t - ↑reqSize
+                 else st.size rem) = st.size t - ↑reqSize := by
+              simp [hp_t, hraw_rem]
+            rw [hrem_size]
+            rw [hrem_addr]
+            omega
+        · have hp_old : st.is_block p = true := hp hp_rem
+          by_cases hq_rem : rem = q
+          · subst q
+            have hp_ne_t : ¬p = t := by
+              intro h
+              exact hp_t h.symm
+            have hp_not_raw : ¬th.addrToPtr (th.ptrToAddr t + ↑reqSize) = p := by
+              simpa [rem] using hp_rem
+            simp only [hp_t, hp_not_raw, if_false]
+            rw [hrem_addr] at hpq ⊢
+            by_cases hp_before_t : th.ptrToAddr p < th.ptrToAddr t
+            · have hold := hinv.2.2.2.2.1 p t hp_old ht hp_before_t
+              omega
+            · have hp_addr_ne : th.ptrToAddr p ≠ th.ptrToAddr t := by
+                intro haddr
+                exact hp_ne_t (ptr_addr_inj haddr)
+              have ht_before_p : th.ptrToAddr t < th.ptrToAddr p := by
+                omega
+              have hold := hinv.2.2.2.2.1 t p ht hp_old ht_before_p
+              omega
+          · have hq_old : st.is_block q = true := hq hq_rem
+            have hp_ne_t : ¬p = t := by
+              intro h
+              exact hp_t h.symm
+            have hp_not_raw : ¬th.addrToPtr (th.ptrToAddr t + ↑reqSize) = p := by
+              simpa [rem] using hp_rem
+            simpa only [hp_t, hp_not_raw, if_false] using hinv.2.2.2.2.1 p q hp_old hq_old hpq
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hnosplit_head]
+      intro p q hp hq hpq
+      by_cases hp_t : t = p
+      · subst p
+        simp [hfree_t]
+        have hold := hinv.2.2.2.2.1 t q ht hq hpq
+        omega
+      · have hp_ne_t : ¬p = t := by
+          intro h
+          exact hp_t h.symm
+        have hp_free : ¬st.free_head = p := by
+          simpa [hhead] using hp_t
+        simpa [hp_free] using hinv.2.2.2.2.1 p q hp hq hpq
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next p q hp hq hpq
+      by_cases hp_t : t = p
+      · subst p
+        simp
+        have hold := hinv.2.2.2.2.1 t q ht hq hpq
+        omega
+      · have hp_ne_t : ¬p = t := by
+          intro h
+          exact hp_t h.symm
+        simpa [hp_t] using hinv.2.2.2.2.1 p q hp hq hpq
 
 theorem Allocate_block_next_by_size_is_block (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -359,7 +561,66 @@ theorem Allocate_block_has_valid_size (ρ : Type) (σ : Type) (Mutator : Type) [
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  classical
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hsplit_head]
+      intro ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simpa [hfree_t] using hreq
+      · by_cases hptr_rem_head : th.addrToPtr (th.ptrToAddr st.free_head + ↑reqSize) = ptr
+        · have hfree_not_ptr : ¬st.free_head = ptr := by
+            intro hfree_ptr
+            have haddr := congrArg th.ptrToAddr hfree_ptr
+            rw [← hptr_rem_head] at haddr
+            rw [has.2.2.2.1 (th.ptrToAddr st.free_head + ↑reqSize)] at haddr
+            omega
+          simp [hfree_not_ptr, hptr_rem_head]
+          omega
+        · have hptr_old : st.is_block ptr = true := hptr hptr_rem_head
+          have hptr_rem : ¬rem = ptr := by
+            intro h
+            exact hptr_rem_head (by
+              dsimp [rem] at h
+              simpa [hhead] using h)
+          have hptr_free : ¬st.free_head = ptr := by
+            simpa [hhead] using hptr_t
+          simpa [hptr_free, hptr_rem_head] using hinv.2.2.2.2.2.2.1 ptr hptr_old
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simp
+        exact hreq
+      · by_cases hptr_rem : rem = ptr
+        · simp [rem, hptr_t, hptr_rem]
+          omega
+        · have hptr_old : st.is_block ptr = true := hptr hptr_rem
+          simpa [hptr_t, hptr_rem, rem] using hinv.2.2.2.2.2.2.1 ptr hptr_old
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hfree_t : st.free_head = t := hhead.symm
+      simp [hhead, hnosplit_head]
+      intro ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simpa [hfree_t] using hreq
+      · have hptr_free : ¬st.free_head = ptr := by
+          simpa [hhead] using hptr_t
+        simpa [hptr_free] using hinv.2.2.2.2.2.2.1 ptr hptr
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simpa using hreq
+      · simpa [hptr_t] using hinv.2.2.2.2.2.2.1 ptr hptr
 
 theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
