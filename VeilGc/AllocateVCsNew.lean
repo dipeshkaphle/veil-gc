@@ -37,7 +37,59 @@ theorem Allocate_block_always_lies_in_heap (ρ : Type) (σ : Type) (Mutator : Ty
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  by_cases hsplit : ↑reqSize < st.size t
+  · by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hrem_heap : th.ptrToAddr th.heap_start ≤ th.ptrToAddr rem ∧
+          th.ptrToAddr rem < th.ptrToAddr th.heap_start + HeapSize := by
+        have ht_heap := hinv.2.1 t ht
+        have ht_fits := hinv.2.2.2.1 t ht
+        constructor
+        · dsimp [rem]
+          rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+          omega
+        · dsimp [rem]
+          rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+          omega
+      simp [hhead, hsplit_head]
+      intro ptr hptr
+      by_cases hptr_rem : rem = ptr
+      · subst ptr
+        exact hrem_heap
+      · exact hinv.2.1 ptr (hptr (by
+          intro hptr_rem_head
+          exact hptr_rem (by
+            dsimp [rem]
+            simpa [hhead] using hptr_rem_head)))
+    · simp [hsplit, hhead]
+      have hrem_heap : th.ptrToAddr th.heap_start ≤ th.ptrToAddr rem ∧
+          th.ptrToAddr rem < th.ptrToAddr th.heap_start + HeapSize := by
+        have ht_heap := hinv.2.1 t ht
+        have ht_fits := hinv.2.2.2.1 t ht
+        constructor
+        · dsimp [rem]
+          rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+          omega
+        · dsimp [rem]
+          rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+          omega
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      by_cases hptr_rem : rem = ptr
+      · subst ptr
+        exact hrem_heap
+      · exact hinv.2.1 ptr (hptr hptr_rem)
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      intro ptr hptr
+      exact hinv.2.1 ptr hptr
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      exact hinv.2.1 ptr hptr
 
 theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -71,7 +123,45 @@ theorem Allocate_null_ptr_not_block (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  have hnull_not_block : st.is_block th.null_ptr = false := hinv.2.2.1
+  by_cases hsplit : ↑reqSize < st.size t
+  · have hrem_not_null : ¬rem = th.null_ptr := by
+      intro hrem_null
+      have ht_heap := hinv.2.1 t ht
+      have ht_fits := hinv.2.2.2.1 t ht
+      have haddr : th.ptrToAddr t + ↑reqSize = th.ptrToAddr th.null_ptr := by
+        have hcongr := congrArg th.ptrToAddr hrem_null
+        dsimp [rem] at hcongr
+        rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)] at hcongr
+        exact hcongr
+      have hnull_lower : th.ptrToAddr th.heap_start ≤ th.ptrToAddr th.null_ptr := by
+        rw [← haddr]
+        omega
+      have hnull_out := has.2.2.2.2 hnull_lower
+      omega
+    by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hsplit_head]
+      constructor
+      · intro hrem_null_head
+        exact hrem_not_null (by
+          dsimp [rem]
+          simpa [hhead] using hrem_null_head)
+      · exact hnull_not_block
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next
+      exact ⟨hrem_not_null, hnull_not_block⟩
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      exact hnull_not_block
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next
+      exact hnull_not_block
 
 theorem Allocate_block_fits_in_heap (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -105,7 +195,68 @@ theorem Allocate_block_fits_in_heap (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  intro hphase hreq t ht ht_blue hsize_le
+  let rem := th.addrToPtr (th.ptrToAddr t + ↑reqSize)
+  have ht_fits := hinv.2.2.2.1 t ht
+  by_cases hsplit : ↑reqSize < st.size t
+  · have hrem_addr : th.ptrToAddr rem = th.ptrToAddr t + ↑reqSize := by
+      dsimp [rem]
+      rw [has.2.2.2.1 (th.ptrToAddr t + ↑reqSize)]
+    by_cases hhead : t = st.free_head
+    · have hsplit_head : ↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      have hsize_le_head : ↑reqSize ≤ st.size st.free_head := by
+        simpa [hhead] using hsize_le
+      have ht_fits_head :
+          th.ptrToAddr st.free_head + st.size st.free_head ≤ th.ptrToAddr th.heap_start + HeapSize := by
+        simpa [hhead] using ht_fits
+      have hrem_addr_head : th.ptrToAddr rem = th.ptrToAddr st.free_head + ↑reqSize := by
+        simpa [hhead] using hrem_addr
+      simp [hhead, hsplit_head]
+      intro ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simp
+        omega
+      · by_cases hptr_rem : rem = ptr
+        · subst ptr
+          simp [rem, hrem_addr_head, hptr_t]
+          omega
+        · have hptr_old : st.is_block ptr = true := hptr (by
+            intro h
+            exact hptr_rem (by
+              dsimp [rem]
+              simpa [hhead] using h))
+          simpa [hptr_t, hptr_rem, rem] using hinv.2.2.2.1 ptr hptr_old
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simp
+        omega
+      · by_cases hptr_rem : rem = ptr
+        · subst ptr
+          simp [rem, hrem_addr, hptr_t]
+          omega
+        · have hptr_old : st.is_block ptr = true := hptr hptr_rem
+          simpa [hptr_t, hptr_rem, rem] using hinv.2.2.2.1 ptr hptr_old
+  · by_cases hhead : t = st.free_head
+    · have hnosplit_head : ¬↑reqSize < st.size st.free_head := by
+        simpa [hhead] using hsplit
+      simp [hhead, hnosplit_head]
+      intro ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simp
+        omega
+      · simpa [hptr_t] using hinv.2.2.2.1 ptr hptr
+    · simp [hsplit, hhead]
+      intro pred hpred_block hpred_blue hpred_next ptr hptr
+      by_cases hptr_t : t = ptr
+      · subst ptr
+        simp
+        omega
+      · simpa [hptr_t] using hinv.2.2.2.1 ptr hptr
 
 theorem Allocate_blocks_do_not_overlap (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
