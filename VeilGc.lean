@@ -450,6 +450,7 @@ invariant [free_blocks_have_no_fields]
 invariant [field_unique]
   ∀ parent off child1 child2,
     field parent off child1 ∧ field parent off child2 → child1 = child2
+
 invariant [field_is_in_bounds]
   ∀ parent off child, field parent off child → off.val < size parent
 
@@ -546,12 +547,12 @@ invariant [only_black_to_gray_or_black_during_mark]
       color c = black ∨ color c = gray
 
 -- SAFETY PROPERTY 1 (mark)
-invariant [all_roots_marked_black_after_mark_phase] ∀ r, roots r ∧ phase = mark_complete -> color r = black
+safety [all_roots_marked_black_after_mark_phase] ∀ r, roots r ∧ phase = mark_complete -> color r = black
 
 -- SAFETY PROPERTY 2 (mark)
 -- post marking (in mark_complete) phase, we have only black -> black
 -- The two safety property imply reachable from roots are marked black..
-invariant [no_black_to_white_after_mark]
+safety [no_black_to_white_after_mark]
   ∀ p off c,
     phase = mark_complete ∧ color p = black ∧ field p off c →
       color c = black
@@ -593,13 +594,13 @@ invariant [reachables_still_black_after_unreachables_sweeping]
 
 -- SAFETY PROPERTY 1 (in sweep)
 -- Roots are not freed after sweeep
-invariant [all_roots_white_after_sweep] ∀ r , phase = sweep_complete ∧ roots r -> color r = white
+safety [all_roots_white_after_sweep] ∀ r , phase = sweep_complete ∧ roots r -> color r = white
 
 -- SAFETY PROPERTY 2 (in sweep)
 -- if a field is white, all it's children are also white
 -- Analogous to the similar invariants (modulo color), these two imply that
 -- all things reachable from roots are white. (Soundness)
-invariant [all_white_points_to_white_after_sweep] ∀ ptr child ,
+safety [all_white_points_to_white_after_sweep] ∀ ptr child ,
           phase = sweep_complete ∧
             is_block ptr ∧ is_block child ∧ (∃ off, field ptr off child) ∧
               color ptr = white -> color child = white
@@ -625,7 +626,7 @@ invariant [black_edges_in_sweep] ∀ off p c, (phase = sweep ∨ phase = reset_c
 
 /- #check RelationalTransitionSystem -/
 
--- #check_invariants
+-- #time #check_invariants
 
 
 end VerifiedGc
