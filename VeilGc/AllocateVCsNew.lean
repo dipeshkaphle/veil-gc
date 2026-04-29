@@ -1,5 +1,6 @@
 import Veil
 import VeilGc
+import Mathlib.Tactic.CasesM
 
 open VerifiedGc
 open VerifiedGc.Color_EnumClass
@@ -654,7 +655,12 @@ theorem Allocate_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutat
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
+  casesm* _ ∧ _
+  expose_names
+  intros
   sorry
+
+
 
 theorem Allocate_roots_are_allocated (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]

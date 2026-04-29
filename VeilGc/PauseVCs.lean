@@ -37,9 +37,10 @@ theorem Pause_free_next_unique_predecessor (ρ : Type) (σ : Type) (Mutator : Ty
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, huniq, _⟩
-  intros
-  apply huniq
+  casesm* _ ∧ _
+  have huniq : ∀ (pred1 pred2 target : Ptr), st.is_block pred1 = true → st.color pred1 = Color_EnumClass.blue → st.is_block pred2 = true → st.color pred2 = Color_EnumClass.blue → st.next pred1 = target → st.next pred2 = target → ¬target = th.null_ptr → pred1 = pred2 := by assumption
+  intro _ pred1 pred2 target hpred1_block hpred1_blue hpred2_block hpred2_blue hnext1 hnext2 htarget
+  exact huniq pred1 pred2 target hpred1_block hpred1_blue hpred2_block hpred2_blue hnext1 hnext2 htarget
 
 theorem Pause_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -74,6 +75,11 @@ theorem Pause_free_blocks_have_list_entry (ρ : Type) (σ : Type) (Mutator : Typ
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  rcases hinv with ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hlist, _⟩
-  intros
+  casesm* _ ∧ _
+  have hlist : ¬st.phase = Phase_EnumClass.sweep → ∀ (ptr : Ptr), st.is_block ptr = true → st.color ptr = Color_EnumClass.blue → ptr = st.free_head ∨ ∃ pred, st.is_block pred = true ∧ st.color pred = Color_EnumClass.blue ∧ st.next pred = ptr := by assumption
+  intro hphase _ ptr hblock hblue
   apply hlist
+  · rw [hphase]
+    grind [Phase_Enum.distinct]
+  · exact hblock
+  · exact hblue
