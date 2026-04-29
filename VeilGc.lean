@@ -545,11 +545,12 @@ invariant [only_black_to_gray_or_black_during_mark]
     phase = mark ∧ color p = black ∧ field p off c →
       color c = black ∨ color c = gray
 
--- SAFETY PROPERTY 1
+-- SAFETY PROPERTY 1 (mark)
 invariant [all_roots_marked_black_after_mark_phase] ∀ r, roots r ∧ phase = mark_complete -> color r = black
 
--- SAFETY PROPERTY 2
+-- SAFETY PROPERTY 2 (mark)
 -- post marking (in mark_complete) phase, we have only black -> black
+-- The two safety property imply reachable from roots are marked black..
 invariant [no_black_to_white_after_mark]
   ∀ p off c,
     phase = mark_complete ∧ color p = black ∧ field p off c →
@@ -590,10 +591,14 @@ invariant [reachables_still_black_after_unreachables_sweeping]
     phase = sweep ∧ color p = black ∧ field p off c →
       color c = black
 
-
+-- SAFETY PROPERTY 1 (in sweep)
+-- Roots are not freed after sweep
 invariant [all_roots_white_after_sweep] ∀ r , phase = sweep_complete ∧ roots r -> color r = white
 
+-- SAFETY PROPERTY 2 (in sweep)
 -- if a field is white, all it's children are also white
+-- Analogous to the similar invariants (modulo color), these two imply that
+-- all things reachable from roots are white. (Soundness)
 invariant [all_white_points_to_white_after_sweep] ∀ ptr child ,
           phase = sweep_complete ∧
             is_block ptr ∧ is_block child ∧ (∃ off, field ptr off child) ∧
