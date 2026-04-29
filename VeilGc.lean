@@ -273,6 +273,21 @@ action DarkenRoot (_c: Collector){
 action CompleteDarkenRoot (_c: Collector){
   require phase = darken_roots
   require ∀ ptr, roots ptr → color ptr = gray
+  -- adding this as an assumption because it holds the wya we have things. 
+  -- Adding invariant for this will cause slowdown but it's provable.
+  -- We have: allocated_white_before_coloring , which says:
+  --```
+  -- ∀ p, (phase = idle ∨ phase = gc_requested) ∧
+  --  is_block p ∧ color p ≠ blue →
+  --    color p = white
+  --```
+  -- So in gc_requested, everything is white
+  -- After that in darken root, we make some stuff gray
+  -- So we don't have black colored ptr here at alll.
+  -- NOTE: This can be made an invariant but its simple enough 
+  -- that I don't think its worth it to go through the trouble of
+  -- rerunning and extracting all the goals.
+  require ∀ p, color p ≠ black
 
   -- since the initial stack has been set up
   phase := darken_roots_complete
