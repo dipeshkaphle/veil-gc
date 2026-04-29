@@ -37,7 +37,21 @@ theorem SweepStep_black_edges_in_sweep (ρ : Type) (σ : Type) (Mutator : Type) 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  casesm* _ ∧ _
+  have h_black : ∀ (off : Fin (HeapSize + 1)) (p c : Ptr),
+    st.phase = Phase_EnumClass.sweep ∨ st.phase = Phase_EnumClass.reset_colors →
+    st.color p = Color_EnumClass.black → st.field p off c = true → st.color c = Color_EnumClass.black := by assumption
+  intro hphase _ _ _ _
+  split
+  · exact h_black
+  · intro off p c hphase_or hcolor_p hneq hfield
+    simp [hneq] at hcolor_p
+    have hcolor_c := h_black off p c hphase_or hcolor_p hfield
+    by_cases heq : th.addrToPtr st.sweep_addr = c
+    · subst heq
+      rename_i h_not_black
+      exact False.elim (h_not_black hcolor_c)
+    · simp [heq, hcolor_c]
 
 theorem SweepStep_gray_only_in_mark (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
@@ -71,7 +85,18 @@ theorem SweepStep_gray_only_in_mark (ρ : Type) (σ : Type) (Mutator : Type) [Mu
           Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  casesm* _ ∧ _
+  have h_gray : ∀ (p : Ptr), st.color p = Color_EnumClass.gray → st.phase = Phase_EnumClass.mark ∨ st.phase = Phase_EnumClass.mark_complete ∨ st.phase = Phase_EnumClass.darken_roots ∨ st.phase = Phase_EnumClass.darken_roots_complete := by assumption
+  intro hphase _ _ _ _
+  split
+  · exact h_gray
+  · intro p hcolor
+    by_cases heq : th.addrToPtr st.sweep_addr = p
+    · subst heq
+      simp at hcolor
+      grind [Color_Enum.distinct]
+    · simp [heq] at hcolor
+      exact h_gray p hcolor
 
 theorem SweepStep_free_next_after_block (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
@@ -106,7 +131,61 @@ theorem SweepStep_free_next_after_block (ρ : Type) (σ : Type) (Mutator : Type)
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  casesm* _ ∧ _
+  have h : ∀ (ptr : Ptr), st.is_block ptr = true → st.color ptr = Color_EnumClass.blue → ¬st.next ptr = th.null_ptr → th.ptrToAddr ptr + st.size ptr ≤ th.ptrToAddr (st.next ptr) ∧ (st.phase = Phase_EnumClass.sweep → th.ptrToAddr (st.next ptr) + st.size (st.next ptr) ≤ st.sweep_addr) := by assumption
+  have h_sweep_bounds : st.phase = Phase_EnumClass.sweep → th.ptrToAddr th.heap_start ≤ st.sweep_addr ∧ st.sweep_addr ≤ th.ptrToAddr th.heap_start + HeapSize := by assumption
+  have h_tail_bounds : st.phase = Phase_EnumClass.sweep → ¬st.free_tail = th.null_ptr → th.ptrToAddr st.free_tail + st.size st.free_tail ≤ st.sweep_addr := by assumption
+  have h_next_null : ∀ (ptr : Ptr), st.is_block ptr = true → ¬st.color ptr = Color_EnumClass.blue → st.next ptr = th.null_ptr := by assumption
+  have h_size_pos : ∀ (ptr : Ptr), st.is_block ptr = true → 0 < st.size ptr := by assumption
+  intro hphase h_sweep_ge h_sweep_lt h_sweep_block h_sweep_color
+  have h_raw : ∀ (raw : Nat), th.ptrToAddr (th.addrToPtr raw) = raw := by assumption
+  split
+  · intro ptr hptr_block hptr_blue hnext_not_null
+    have h_old := h ptr hptr_block hptr_blue hnext_not_null
+    have h_left : th.ptrToAddr ptr + st.size ptr ≤ th.ptrToAddr (st.next ptr) := h_old.1
+    have h_right : st.phase = Phase_EnumClass.sweep → th.ptrToAddr (st.next ptr) + st.size (st.next ptr) ≤ st.sweep_addr + st.size (th.addrToPtr st.sweep_addr) := fun _ => by
+      have h1 := h_old.2 hphase
+      have hsz := h_size_pos (th.addrToPtr st.sweep_addr) h_sweep_block
+      omega
+    exact ⟨h_left, h_right⟩
+  · by_cases htail_null : st.free_tail = th.null_ptr
+    · simp [if_pos htail_null]
+      intro ptr hptr_block h_blue hptr_neq hnext_not_null
+      have hptr_neq_rev : th.addrToPtr st.sweep_addr ≠ ptr := hptr_neq
+      have h_old := h ptr hptr_block (h_blue hptr_neq_rev) hnext_not_null
+      exact ⟨by
+        simp [if_neg hptr_neq_rev]
+        exact h_old.1
+      , fun _ => by
+        simp [if_neg hptr_neq_rev]
+        have h1 := h_old.2 hphase
+        have hsz := h_size_pos (th.addrToPtr st.sweep_addr) h_sweep_block
+        omega⟩
+    · rw [if_neg htail_null]
+      intro ptr hptr_block h_blue hptr_neq hnext_not_null
+      have hptr_neq_rev : th.addrToPtr st.sweep_addr ≠ ptr := hptr_neq
+      by_cases htail : st.free_tail = ptr
+      · have h_bound := h_tail_bounds hphase
+        have h_tail_bound := h_bound htail_null
+        exact ⟨by
+          rw [if_neg hptr_neq_rev, if_pos htail]
+          rw [←htail]
+          rw [h_raw]
+          exact h_tail_bound
+        , fun _ => by
+          rw [if_neg hptr_neq_rev, if_pos htail]
+          rw [h_raw]⟩
+      · have h_old := h ptr hptr_block (h_blue hptr_neq_rev) (by
+          rw [if_neg htail] at hnext_not_null
+          exact hnext_not_null)
+        exact ⟨by
+          rw [if_neg hptr_neq_rev, if_neg htail]
+          exact h_old.1
+        , fun _ => by
+          rw [if_neg hptr_neq_rev, if_neg htail]
+          have h1 := h_old.2 hphase
+          have hsz := h_size_pos (th.addrToPtr st.sweep_addr) h_sweep_block
+          omega⟩
 
 theorem SweepStep_fields_from_allocated (ρ : Type) (σ : Type) (Mutator : Type)
     [Mutator_dec_eq : DecidableEq.{1} Mutator] [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type)
