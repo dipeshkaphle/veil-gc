@@ -38,7 +38,19 @@ theorem MarkStep_roots_gray_or_black_in_mark (ρ : Type) (σ : Type) (Mutator : 
           Color_Enum Phase Phase_dec_eq Phase_inhabited Phase_Enum χ χ_rep χ_rep_lawful σ_sub ρ_sub) :=
   by
   veil_human
-  sorry
+  casesm* _ ∧ _
+  have h : ∀ (r : Ptr), st.roots r = true → st.phase = Phase_EnumClass.mark → st.color r = Color_EnumClass.gray ∨ st.color r = Color_EnumClass.black := by assumption
+  intro hphase t hblock hcolor r hroots _
+  have h_old := h r hroots hphase
+  rcases h_old with h1 | h2
+  · by_cases h_eq : t = r
+    · subst h_eq
+      simp
+    · simp [h_eq, h1]
+  · by_cases h_eq : t = r
+    · subst h_eq
+      simp
+    · simp [h_eq, h2]
 
 theorem MarkStep_block_has_color (ρ : Type) (σ : Type) (Mutator : Type) [Mutator_dec_eq : DecidableEq.{1} Mutator]
     [Mutator_inhabited : Inhabited.{1} Mutator] (Collector : Type) [Collector_dec_eq : DecidableEq.{1} Collector]
